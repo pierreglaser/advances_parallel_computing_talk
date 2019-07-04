@@ -6,9 +6,21 @@
 \usepackage{xcolor}
 \usepackage{etoolbox}
 \usepackage{tikz}
+\usepackage{color, colortbl}
+
+\usetikzlibrary{mindmap,trees,shadows}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+
 
 \definecolor{aliceblue}{rgb}{0.94, 0.97, 1.0}
 \definecolor{beige}{rgb}{0.96, 0.96, 0.86}
+\definecolor{chartreuse}{rgb}{0.87, 1.0, 0.0}
 
 \usemintedstyle{manni}
 \setminted{fontsize=\footnotesize, baselinestretch=1}
@@ -56,9 +68,9 @@
         \includegraphics[scale=0.40]{media/scikit-learn-logo.png}};
         \node[align=left] (inst) at (1, -1) {%
         \includegraphics[scale=0.4]{media/used_by_scikit-learn.png}};
-        \node[align=left] (inst) at (8, 0) {%
+        \node[align=left] (inst) at (8.5, 0) {%
         \includegraphics[scale=0.30]{media/numpy-logo.png}};
-        \node[align=left] (inst) at (8, -1.5) {%
+        \node[align=left] (inst) at (8.5, -1.5) {%
         \includegraphics[scale=0.4]{media/used_by_numpy.png}};
         \node[align=left] (inst) at (4.5, -3) {%
         \includegraphics[scale=0.40]{media/pandas.png}};
@@ -66,9 +78,119 @@
         \includegraphics[scale=0.4]{media/used_by_pandas.png}};
         \end{tikzpicture}
     \end{frame}
-    \begin{frame}[t]{What kind of parallel are we talking about?}
+    \begin{frame}[t]{Parallel computing? Why?}
+        \small
+        \begin{itemize}
+            \item going bigger
+            \item accelerating repeated experiments
+        \end{itemize}
     \end{frame}
-
+    \begin{frame}[t]{Parallel computing? Why?}
+        \footnotesize
+        \center
+        \begin{tikzpicture}
+        \node[align=left, visible on=<1>] (all) at (5, 3.5) {%
+            \begin{tabular}{c c}
+                a & b \\
+                \hline
+                \hline
+                1 & 2 \\
+                3 & 4 \\
+                5 & 6 \\
+                7 & 8 \\
+        \end{tabular}};
+        \node[align=left, visible on=<2>] (all) at (5, 3.5) {%
+            \begin{tabular}{c c}
+                a & b \\
+                \hline
+                \hline
+                \rowcolor{beige}
+                1 & 2 \\
+                3 & 4 \\
+                \rowcolor{beige}
+                5 & 6 \\
+                \rowcolor{beige}
+                7 & 8 \\
+        \end{tabular}};
+        \node[align=left, visible on=<3>] (all) at (5, 3.5) {%
+            \begin{tabular}{c c}
+                a & b \\
+                \hline
+                \hline
+                1 & 2 \\
+                \rowcolor{aliceblue}
+                3 & 4 \\
+                \rowcolor{aliceblue}
+                5 & 6 \\
+                \rowcolor{aliceblue}
+                7 & 8 \\
+        \end{tabular}};
+        \node[align=left, visible on=<4->] (all) at (5, 3.5) {%
+            \begin{tabular}{c c}
+                a & b \\
+                \hline
+                \hline
+                \rowcolor{chartreuse}
+                1 & 2 \\
+                \rowcolor{chartreuse}
+                3 & 4 \\
+                \rowcolor{chartreuse}
+                5 & 6 \\
+                7 & 8 \\
+        \end{tabular}};
+        \node[align=left, visible on=<2->] (cv1) at (1.5, 0) {%
+                \begin{tabular}{c c}
+                    a & b \\
+                    \hline
+                    \hline
+                    \rowcolor{beige}
+                    1 & 2 \\
+                      &   \\
+                    \rowcolor{beige}
+                    5 & 6 \\
+                    \rowcolor{beige}
+                    7 & 8 \\
+                \end{tabular}};
+        \node[align=left, visible on = <3->] (cv2) at (5, 0) {%
+            \begin{tabular}{c c}
+                a & b \\
+                \hline
+                \hline
+                  &   \\
+                \rowcolor{aliceblue}
+                3 & 4 \\
+                \rowcolor{aliceblue}
+                5 & 6 \\
+                \rowcolor{aliceblue}
+                7 & 8 \\
+            \end{tabular}};
+        \node[align=left, visible on=<4->] (cv3) at (8.5, 0) {%
+                \begin{tabular}{c c}
+                    a & b \\
+                    \hline
+                    \hline
+                    \rowcolor{chartreuse}
+                    1 & 2 \\
+                    \rowcolor{chartreuse}
+                    5 & 6 \\
+                    \rowcolor{chartreuse}
+                    3 & 4 \\
+                      &   \\
+                \end{tabular}};
+        \node[align=left, visible on = <3->] (img) at (8.5, -1.5){%
+            \only<6>{\includegraphics[scale=0.04]{media/server-logo.png}}
+            \only<5>{\includegraphics[scale=0.04]{media/cpu-logo.png}}};
+        \node[align=left, visible on = <3->] (img) at (5, -1.5){%
+            \only<6>{\includegraphics[scale=0.04]{media/server-logo.png}}
+            \only<5>{\includegraphics[scale=0.04]{media/cpu-logo.png}}};
+        \node[align=left, visible on = <3->] (img) at (1.5, -1.5){%
+            \only<6>{\includegraphics[scale=0.04]{media/server-logo.png}}
+            \only<5>{\includegraphics[scale=0.04]{media/cpu-logo.png}}};
+        {\draw[->, visible on=<2->] (all.south)--(cv1.north east);}
+        {\draw[->, visible on=<3->] (all.south)--(cv2.north);}
+        {\draw[->, visible on=<4->] (all.south)--(cv3.north west);}
+        \end{tikzpicture}
+    \end{frame}
     \begin{frame}[t]{}
         \center
         \vspace{3em}
@@ -79,45 +201,53 @@
             sectionstyle=show/hide
             ]
     \end{frame}
+    \begin{frame}[t]{Our concerns}
+        \centering{communication}
+        \small
+        \begin{itemize}
+            \item speed
+            \item safety (deadlocks)
+            \item memory footprint
+        \end{itemize}
+    \end{frame}
     \begin{frame}[t]{}
         \vspace{5em}
         \center Disclaimer: This talk is mostly CPython specific.
     \end{frame}
 
-    \subsection{At which level?}
-        \begin{frame}[t]{The Python Interpreter}
+    % \subsection{At which level?}
+    %     \begin{frame}[t]{The Python Interpreter}
 
-        \end{frame}
-        \begin{frame}[t]{Parallelism at the Python level}
+    %     \end{frame}
+    %     \begin{frame}[t]{Parallelism at the Python level}
 
-        \end{frame}
-        \begin{frame}[t]{Parallelism at the C level}
+    %     \end{frame}
+    %     \begin{frame}[t]{Parallelism at the C level}
+    %     \end{frame}
+    % \subsection{Using which code?}
+    %     \begin{frame}[t]{The python virtual machine}
 
-        \end{frame}
-    \subsection{Using which code?}
-        \begin{frame}[t]{The python virtual machine}
+    %     \end{frame}
+    %     \begin{frame}[t]{Arbirtray code execution}
 
-        \end{frame}
-        \begin{frame}[t]{Arbirtray code execution}
+    %     \end{frame}
+    %     \begin{frame}[t]{Consequences for paralle computing}
 
-        \end{frame}
-        \begin{frame}[t]{Consequences for paralle computing}
-
-        \end{frame}
-    \subsection{In practice?}
-        \begin{frame}[t]{several matrix-matrix multiplication}
-            \begin{itemize}
-                \item using python threads
-                \item using python processes
-                \item using BLAS parallelism
-            \end{itemize}
-        \end{frame}
+    %     \end{frame}
+    % \subsection{In practice?}
+    %     \begin{frame}[t]{several matrix-matrix multiplication}
+    %         \begin{itemize}
+    %             \item using python threads
+    %             \item using python processes
+    %             \item using BLAS parallelism
+    %         \end{itemize}
+    %     \end{frame}
 
 
 
 \section{Built-in and Third Party ressources}
     \subsection{In the Standard Library}
-        \begin{frame}[t]{multiprocessing/threading}
+        \begin{frame}[t]{multiprocessing}
 
         \end{frame}
         \begin{frame}[t]{concurrent futures}
