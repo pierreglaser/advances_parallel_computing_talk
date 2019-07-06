@@ -10,11 +10,12 @@ params = {
         "xtick.labelsize": 16,
         "ytick.labelsize": 16,
         "font.size": 16,
+        # "font.weight": "bold",
 }
 mpl.rcParams.update(params)
 
 
-df = pd.read_csv("python_psf_external_18.csv")
+df = pd.read_csv("../data/python_psf_external_18.csv")
 python_usage = df[
     [x for x in df.columns if "What do you use Python for?" in x and not
      'Other' in x]
@@ -38,4 +39,4 @@ i = 0
 for idx, row in top_5_python_usage.iteritems():
     ax.text(row + 4300, i-0.1, '{0:.1%}'.format(row/len(python_usage)))
     i += 1
-f.savefig('media/psf_usage_survey.png', dpi=f.dpi)
+f.savefig('../media/psf_usage_survey.png', dpi=f.dpi, transparent=True)
