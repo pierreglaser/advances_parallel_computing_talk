@@ -1,0 +1,7 @@
+>>> import multiprocessing as mp
+>>> mp.set_start_method("spawn")
+>>> p = mp.Pool(2)
+>>> def greet_friend(name):
+...     print("hello {}!".format(name))
+...
+>>> p.map(greet_friend, ("Alice", "Bob"))

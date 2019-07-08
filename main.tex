@@ -8,8 +8,15 @@
 \usepackage{tikz}
 \usetikzlibrary{fit}
 \usepackage{color, colortbl}
+\usepackage{soul}
+\usepackage{fontspec}
+\usepackage{fontawesome}
+\usepackage{array}
+\usepackage{hyperref}
 
-\usetikzlibrary{mindmap,trees,shadows}
+% \usepackage[export]{adjustbox}
+
+\usetikzlibrary{mindmap,trees,shadows,shapes,positioning,arrows,calc,matrix}
 \tikzset{
   invisible/.style={opacity=0},
   visible on/.style={alt={#1{}{invisible}}},
@@ -17,20 +24,32 @@
     \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
   },
 }
+\setmonofont[
+  Contextuals={Alternate}
+  ]{FiraCode-Regular}
+
+
 
 
 \definecolor{aliceblue}{rgb}{0.94, 0.97, 1.0}
 \definecolor{beige}{rgb}{0.96, 0.96, 0.86}
 \definecolor{chartreuse}{rgb}{0.87, 1.0, 0.0}
 
+\sethlcolor{yellow}
+
 \usemintedstyle{manni}
 \setminted{fontsize=\footnotesize, baselinestretch=1}
 
 \setbeamertemplate{footline}[frame number]
 \setbeamercolor{normal text}{fg=black!80,bg=white}
+
+\newcommand{\mycode}[2][\tiny] {\mintinline[bgcolor=gray!10, fontsize=#1]{python}{#2}}
+
 \title{Parallel Computing in Python}
 \subtitle{Current State and Recent Advances}
-\author{\href{http://kbroman.org}{Pierre Glaser}}
+\author{\href{http://kbroman.org}{Pierre Glaser}
+\href{https://github.com/pierreglaser}{\faGithub}
+\href{https://twitter.com/pierreglaser}{\faTwitter}}
 
 
 \begin{document}
@@ -66,6 +85,7 @@
     \footnote{\tiny source: https://www.jetbrains.com/research/python-developers-survey-2018/}
         }
     \end{frame}
+
     \begin{frame}{A growing scientific computing ecosystem}
         \begin{tikzpicture}
         \node[align=left] (inst) at (1, 0) {%
@@ -82,10 +102,12 @@
         \includegraphics[scale=0.4]{media/used_by_pandas.png}};
         \end{tikzpicture}
     \end{frame}
+
     \begin{frame}[t]{Parallel computing? Why?}
         \small
         \vspace{1cm}
-        independent, similar computation happens a lot in machine learning.
+        independent, similar computation happens a lot in machine learning. We
+        call it embarassingly parallel tasks.
         \vspace{1cm}
         \begin{itemize}
             \item cross validation
@@ -98,11 +120,12 @@
         Exists for many scikit-learn estimators, but not all.
         \end{flushright}
     \end{frame}
+
     \begin{frame}[fragile]{User API}
         \small
         Parallelization can be enabled using the \verb|n_jobs| option.
         \begin{beamerboxesrounded}{}
-            \begin{minted}[fontfamily=fvm, bgcolor=beige, fontsize=\tiny]{python}
+            \begin{minted}[bgcolor=beige, fontsize=\tiny]{python}
 clf = LogisticRegression(solver='saga', n_jobs=4)
 X, y = get_data()
 clf.fit(X, y)  # runs on 4 cores!
@@ -111,186 +134,223 @@ clf.fit(X, y)  # runs on 4 cores!
         \textit{" Let us know if you want to use more CPU resources, because
         parallelizing your models is not hard for you"}
     \end{frame}
+
     \begin{frame}[fragile]{Multithreading or multiprocessing?}
-        Should these separate computations be ran 
+        Should these separate computations be ran
         \begin{itemize}
             \item using multiple threads in the main process?
             \item using multiple processes?
         \end{itemize}
     \end{frame}
+
     \begin{frame}[t]{Cross-validation}
         \footnotesize
         I want to fit the same machine learning model on different subsets of
         the same data.
-        \center
-
-        \begin{tikzpicture}
-            \tikzset{rounded corners=1}
-        \node[align=left, visible on=<1>] (all) at (5, 4) {%
-            \begin{tabular}{c c}
-                a & b \\
-                \hline
-                \hline
-                1 & 2 \\
-                3 & 4 \\
-                5 & 6 \\
-                7 & 8 \\
-        \end{tabular}};
-        \node[align=left, visible on=<2>] (all) at (5, 4) {%
-            \begin{tabular}{c c}
-                a & b \\
-                \hline
-                \hline
-                \rowcolor{beige}
-                1 & 2 \\
-                3 & 4 \\
-                \rowcolor{beige}
-                5 & 6 \\
-                \rowcolor{beige}
-                7 & 8 \\
-        \end{tabular}};
-        \node[align=left, visible on=<3>] (all) at (5, 4) {%
-            \begin{tabular}{c c}
-                a & b \\
-                \hline
-                \hline
-                1 & 2 \\
-                \rowcolor{aliceblue}
-                3 & 4 \\
-                \rowcolor{aliceblue}
-                5 & 6 \\
-                \rowcolor{aliceblue}
-                7 & 8 \\
-        \end{tabular}};
-        \node[align=left, visible on=<4>] (all) at (5, 4) {%
-            \begin{tabular}{c c}
-                a & b \\
-                \hline
-                \hline
-                \rowcolor{chartreuse}
-                1 & 2 \\
-                \rowcolor{chartreuse}
-                3 & 4 \\
-                \rowcolor{chartreuse}
-                5 & 6 \\
-                7 & 8 \\
-        \end{tabular}};
-        \node[align=left, visible on=<5->] (all) at (5, 4) {%
-            \begin{tabular}{c c}
-                a & b \\
-                \hline
-                \hline
-                1 & 2 \\
-                3 & 4 \\
-                5 & 6 \\
-                7 & 8 \\
-        \end{tabular}};
-        \node[align=left, visible on=<6->] (cv1) at (1.5, 0) {%
-                \begin{tabular}{c c}
-                    a & b \\
-                    \hline
-                    \hline
-                    \rowcolor{beige}
-                    1 & 2 \\
-                      &   \\
-                    \rowcolor{beige}
-                    5 & 6 \\
-                    \rowcolor{beige}
-                    7 & 8 \\
-                \end{tabular}};
-        \node[align=left, visible on = <6->] (cv2) at (5, 0) {%
-            \begin{tabular}{c c}
-                a & b \\
-                \hline
-                \hline
-                  &   \\
-                \rowcolor{aliceblue}
-                3 & 4 \\
-                \rowcolor{aliceblue}
-                5 & 6 \\
-                \rowcolor{aliceblue}
-                7 & 8 \\
-            \end{tabular}};
-        \node[align=left, visible on=<6->] (cv3) at (8.5, 0) {%
-                \begin{tabular}{c c}
-                    a & b \\
-                    \hline
-                    \hline
-                    \rowcolor{chartreuse}
-                    1 & 2 \\
-                    \rowcolor{chartreuse}
-                    5 & 6 \\
-                    \rowcolor{chartreuse}
-                    3 & 4 \\
-                      &   \\
-                \end{tabular}};
-        \node[align=left, visible on = <1->] (worker3) at (8.5, 1.6){%
-            \only<-4>{\includegraphics[scale=0.02]{media/python-logo.png}}
-            \only<5-6>{\includegraphics[scale=0.04]{media/cpu-logo.png}}
-            \only<7>{\includegraphics[scale=0.04]{media/server-logo.png}}};
-        \node[align=left, visible on = <1->] (worker2) at (5, 1.6){%
-            \only<-4>{\includegraphics[scale=0.02]{media/python-logo.png}}
-            \only<5-6>{\includegraphics[scale=0.04]{media/cpu-logo.png}}
-            \only<7>{\includegraphics[scale=0.04]{media/server-logo.png}}};
-        \node[align=left, visible on = <1->] (worker1) at (1.5, 1.6){%
-            \only<-4>{\includegraphics[scale=0.02]{media/python-logo.png}}
-            \only<5-6>{\includegraphics[scale=0.04]{media/cpu-logo.png}}
-            \only<7>{\includegraphics[scale=0.04]{media/server-logo.png}}};
-        % {\draw[->, visible on=<5->] (all.south)--(cv1.north east);}
-        % {\draw[->, visible on=<6->] (all.south)--(cv2.north);}
-        % {\draw[->, visible on=<7->] (all.south)--(cv3.north west);}
-        {\draw[->, visible on=<2>] (worker1.east)--(all.south);}
-        {\draw[->, visible on=<3>] (worker2.north)--(all.south);}
-        {\draw[->, visible on=<4>] (worker3.west)--(all.south);}
-        % {\draw[->, visible on=<3->] (all.south)--(cv2.north);}
-        % {\draw[->, visible on=<4->] (all.south)--(cv3.north west);}
-        \node[visible on =<1-4>, draw,inner sep=5mm,fit=(all) (worker2) (worker3) (worker1)] {};
-        \node[visible on =<5->, draw,inner sep=1mm,fit=(all) (all) (all) (all)] {};
-        \node[visible on =<6->, draw,inner sep=1mm,fit=(worker1) (cv1) (cv1) (cv1)] {};
-        \node[visible on =<6->, draw,inner sep=1mm,fit=(worker2) (cv2) (cv2) (cv2)] {};
-        \node[visible on =<6->, draw,inner sep=1mm,fit=(worker3) (cv3) (cv3) (cv3)] {};
-
-
-        \node[visible on = <5->, align=left] (legend) at (8, 5){};
-        \node[visible on = <5->, align=left] (title) at (9.5, 5){\tiny : single python interpreter};
-        \node[draw,inner sep=1mm,fit=(legend) (legend) (legend) (legend)] {};
-
-        \node[visible on = <1-4>, align=left] (backend) at (2, 5){\footnotesize using many threads};
-        \node[visible on = <5-6>, align=left] (backend) at (2, 5){\footnotesize using many processes};
-        \node[visible on = <7>, align=left] (backend) at (2, 5){\footnotesize using many machines};
-        \end{tikzpicture}
-    \end{frame}
-    \begin{frame}[t]{}
-        \center
-        \vspace{3em}
-        \tableofcontents[
-            % currentsubsection,
-            % hideothersubsections,
-            subsectionstyle=show/hide/hide,
-            sectionstyle=show/hide
-            ]
-    \end{frame}
-    \begin{frame}[t]{Different challenges}
-        \vspace{2cm}
+        \vspace{1cm}
         \begin{columns}
             \begin{column}{0.5\textwidth}
-                \small
-                multiprocessing
+                \only<2-5>{%
+                    \small \textbf{thread-based parallelism:} \\
+                \footnotesize
+                \vspace{0.5cm}
+                +: threads share memory
                 \begin{itemize}
-                    \item speed (of data communication)
-                    \item memory footprint (of duplicated data)
-                    \item ease of use, safety (deadlocks)
+                    \item no data copies
+                    \item no data transfer
                 \end{itemize}
+                \vspace{0.2cm}
+                -: Python forces threads to run sequentially
+                }
+                \only<6->{%
+                \scriptsize
+                    \small \textbf{process-based parallelism:} \\
+                    \footnotesize
+                \vspace{0.5cm}
+                +: processes are assured to run in parallel
+                \vspace{0.2cm} \\
+                -: need to pass and copy data around
+                \begin{itemize}
+                    \item larger memory footpring
+                    \item data transfer overhead
+                \end{itemize}
+                }
+                \vspace{2.3cm}
             \end{column}
-            \begin{column}{0.5\textwidth}
-                \small
-                threading\\
-                \vspace{1cm}
-                Python usually prevents multiple python threads from running
-                simulateously.
+            \begin{column}{0.6\textwidth}
+                \begin{tikzpicture}[scale=0.55]
+                    \tikzset{rounded corners=1}
+                \node[align=left, visible on=<2->] (main-thread) at (5, 5.7) {%
+                        \only<2-5>{\mycode{main thread}}
+                        \only<6->{\mycode{main process}}};
+                \node[align=left, visible on=<2>] (all) at (5, 4) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                        1 & 2 \\
+                        3 & 4 \\
+                        5 & 6 \\
+                        7 & 8 \\
+                \end{tabular}}};
+                \node[align=left, visible on=<3>] (all) at (5, 4) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                        \rowcolor{beige}
+                        1 & 2 \\
+                        3 & 4 \\
+                        \rowcolor{beige}
+                        5 & 6 \\
+                        \rowcolor{beige}
+                        7 & 8 \\
+                \end{tabular}}};
+                \node[align=left, visible on=<4>] (all) at (5, 4) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                        1 & 2 \\
+                        \rowcolor{aliceblue}
+                        3 & 4 \\
+                        \rowcolor{aliceblue}
+                        5 & 6 \\
+                        \rowcolor{aliceblue}
+                        7 & 8 \\
+                \end{tabular}}};
+                \node[align=left, visible on=<5>] (all) at (5, 4) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                        \rowcolor{chartreuse}
+                        1 & 2 \\
+                        \rowcolor{chartreuse}
+                        3 & 4 \\
+                        \rowcolor{chartreuse}
+                        5 & 6 \\
+                        7 & 8 \\
+                \end{tabular}}};
+                \node[align=left, visible on=<6->] (all) at (5, 4) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                        1 & 2 \\
+                        3 & 4 \\
+                        5 & 6 \\
+                        7 & 8 \\
+                    \end{tabular}}};
+                \node[align=left, visible on=<7->] (cv1) at (1.5, 0) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                        \begin{tabular}{c c}
+                            a & b \\
+                            \hline
+                            \hline
+                            \rowcolor{beige}
+                            1 & 2 \\
+                              &   \\
+                            \rowcolor{beige}
+                            5 & 6 \\
+                            \rowcolor{beige}
+                            7 & 8 \\
+                    \end{tabular}}};
+                \node[align=left, visible on = <7->] (cv2) at (5, 0) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                          &   \\
+                        \rowcolor{aliceblue}
+                        3 & 4 \\
+                        \rowcolor{aliceblue}
+                        5 & 6 \\
+                        \rowcolor{aliceblue}
+                        7 & 8 \\
+                \end{tabular}}};
+                \node[align=left, visible on=<7->] (cv3) at (8.5, 0) {%
+                    \resizebox{0.13\textwidth}{!}{%
+                        \begin{tabular}{c c}
+                            a & b \\
+                            \hline
+                            \hline
+                            \rowcolor{chartreuse}
+                            1 & 2 \\
+                            \rowcolor{chartreuse}
+                            5 & 6 \\
+                            \rowcolor{chartreuse}
+                            3 & 4 \\
+                              &   \\
+                    \end{tabular}}};
+                \node[align=left, visible on = <2->] (worker3) at (8.5, 1.6){%
+                % \only<-4>{\mycode{Thread-3}}};
+                \temporal<6-7>{\mycode{Thread-3}}{\mycode{Process-3}}{\mycode{Machine-3}}};
+
+                \node[align=left, visible on = <2-8>] (worker2) at (5, 1.6){%
+                % \only<-4>{\mycode{Thread-2}}};
+                \temporal<6-7>{\mycode{Thread-2}}{\mycode{Process-2}}{\mycode{Machine-2}}};
+
+                \node[visible on = <2->] (worker1) at (1.5, 1.6){%
+                % \only<-4>{\mycode{Thread-1   }}};
+                    % \only<-4>{\mycode{Thread-1   }}
+                    % \only<-4>{\mycode{Thread-1   }}
+                \temporal<6-7>{\mycode{Thread-1}}{\mycode{Process-1}}{\mycode{Machine-1}}};
+                % {\draw[->, visible on=<5->] (all.south)--(cv1.north east);}
+                % {\draw[->, visible on=<6->] (all.south)--(cv2.north);}
+                % {\draw[->, visible on=<7->] (all.south)--(cv3.north west);}
+                {\draw[->, visible on=<3>] (worker1.east)--(all.south);}
+                {\draw[->, visible on=<4>] (worker2.north)--(all.south);}
+                {\draw[->, visible on=<5>] (worker3.west)--(all.south);}
+                % {\draw[->, visible on=<3->] (all.south)--(cv2.north);}
+                % {\draw[->, visible on=<4->] (all.south)--(cv3.north west);}
+                \node[visible on =<2-5>, draw,inner sep=5mm,fit=(all) (worker2) (worker3) (worker1)] {};
+                \node[visible on =<6->, draw,inner sep=0.5mm,fit=(main-thread) (all) (all) (all)] {};
+                \node[visible on =<7->, draw,inner sep=0.5mm,fit=(worker1) (cv1) (cv1) (cv1)] {};
+                \node[visible on =<7->, draw,inner sep=0.5mm,fit=(worker2) (cv2) (cv2) (cv2)] {};
+                \node[visible on =<7->, draw,inner sep=0.5mm,fit=(worker3) (cv3) (cv3) (cv3)] {};
+
+
+                \node[visible on = <6->, align=left] (legend) at (4, -3){};
+                \node[visible on= <6->, draw,inner sep=1mm,fit=(legend) (legend) (legend) (legend)] {};
+                \node[visible on = <6->, align=left] (title) at (7, -3){\tiny : single python interpreter};
+
+                \end{tikzpicture}
             \end{column}
         \end{columns}
     \end{frame}
+
+    % \begin{frame}[t]{}
+    %     \center
+    %     \vspace{3em}
+    %     \tableofcontents[
+    %         % currentsubsection,
+    %         % hideothersubsections,
+    %         subsectionstyle=show/hide/hide,
+    %         sectionstyle=show/hide
+    %         ]
+    % \end{frame}
+
+    \begin{frame}[t]{The challenges of multiprocessing (and beyond)}
+        \vspace{1cm}
+        Improvements in python multiprocessing mostly concern:
+        \hspace{10em}
+        \begin{tabular}{m{0.5cm} m{10cm}}
+                 & \\
+                 & \\
+                \includegraphics[width=\linewidth] {media/rocket-emoji.png} & speed (of data communication) \\
+                \includegraphics[width=\linewidth]{media/recyclable_emoji.png} & memory footprint (of duplicated data) \\
+                \includegraphics[width=\linewidth]{media/green-tick-emoji.png} & ease of use, safety (deadlocks) \\
+            \end{tabular}
+
+    \end{frame}
+
     \begin{frame}[t]{}
         \vspace{5em}
         \center disclaimer: this talk is mostly cpython specific.
@@ -339,19 +399,183 @@ clf.fit(X, y)  # runs on 4 cores!
 
 \section{Built-in and Third Party ressources}
     \subsection{In the Standard Library}
-        \begin{frame}[t]{multiprocessing}
 
-        \end{frame}
-        \begin{frame}[t]{concurrent futures}
+    \begin{frame}[fragile]{\mycode[\small]{multiprocessing}}
+        provides all necessary constructs for creating and handling proccesses
+        in \mintinline[bgcolor=gray!10]{python}{Python} programs
+        \vspace{1em}
+        \begin{columns}
+            \begin{column}{0.5\textwidth}
+                \begin{itemize}
+                    \visible<2->{\item creation}
+                    \visible<3->{\item communication}
+                    \visible<4->{\item \hl{shared memory}}
+                \end{itemize}
+                \vspace{2cm}
+            \end{column}
+            \begin{column}{0.5\textwidth}
+                \begin{tikzpicture}
+                    \tikzset{rounded corners=1}
+                \draw (0, 0) node[rectangle, visible on=<2->, draw=gray, font=\tiny] (main){main process};
+                \draw (0, -4) node[rectangle, visible on=<4->, draw=gray, font=\tiny,alt=<4>{fill=yellow}{fill=gray!10} ]
+                    (lock){\mintinline[fontsize=\tiny]{python}{mp.Lock}};
+                \draw (1.5, -3) node[rectangle, visible on = <2->, draw=gray, font=\tiny,alt=<2>{fill=yellow}{fill=gray!10} ]
+                    (child2){\mintinline[fontsize=\tiny]{python}{mp.Process}};
+                \draw (-1.5, -3) node[rectangle, draw=gray,visible on = <2->, font=\tiny,alt=<2>{fill=yellow}{fill=gray!10} ]
+                    (child1){\mintinline[fontsize=\tiny]{python}{mp.Process}};
+                % \draw (0, -2) node[rectangle, inner sep=1pt, draw=gray, font=\tiny] (queue){child process};
+                \draw (0, -1.5) node[rectangle split, visible on=<3->, rectangle split parts=3,
+                       draw, minimum width=1cm,font=\small,
+                      rectangle split part align={center}, inner sep=1pt]
+                      (queue) {};
+                  \draw (2, -1.5) node[visible on=<3->, alt=<3>{fill=yellow}{fill=gray!10}]
+                      (queue label) {\mintinline[fontsize=\tiny]{python}{mp.Queue}};
+                \draw[visible on=<3->, ->] (queue.south) -- (child1.north);
+                \draw[visible on=<3->, ->] (queue.south) -- (child2.north);
+                \draw[visible on=<3->, ->] (main.south) -- (queue.north);
+                \draw[visible on=<4->, ->] (child2.south) -- (lock.north);
+                \draw[visible on=<4->, ->] (child1.south) -- (lock.north);
+                % \node[visible on = <7>, align=left] (backend) at (2, 5){\footnotesize using many machines};
+                \end{tikzpicture}
+            \end{column}
+        \end{columns}
+        \visible<4>{It's a very rich library!}
+    \end{frame}
 
-        \end{frame}
-    \subsection{Third party extensions}
-        \begin{frame}[t]{loky}
+    \begin{frame}[fragile]{\mycode[\small]{multiprocessing}}
+        Programs executing embarassingly parallel tasks share a common
+        multiprocessing strucure:
+        \begin{columns}
+            \begin{column}{0.55\textwidth}
+                \uncover<1->{
+                \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/multiprocessing_q.py}
+                }
+                \uncover<2->{
+                \vspace{-3.1em}
+                \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/multiprocessing_qa.py} }
+            \end{column}
+            \begin{column}{0.5\textwidth}
+                \hspace{1em}
+                \visible<2->{
+                \begin{tikzpicture}
+                    % \tikzset{rounded corners=1}
+                \draw (0, 0) node[rectangle, rounded corners, draw=gray, font=\tiny, minimum width=80pt] (main){main process};
+                \draw (0, -3) node[rectangle, rounded corners, draw=gray, font=\tiny] (child1){%
+                    \mintinline[fontsize=\tiny]{python}{worker-1}};
+                \draw (0, -4) node[rectangle, rounded corners, draw=gray, font=\tiny] (child2){%
+                    \mintinline[fontsize=\tiny]{python}{worker-2}};
+                % \draw (0, -2) node[rectangle, inner sep=1pt, draw=gray, font=\tiny] (queue){child process};
+                \draw (-1, -1.5) node[rectangle split, rectangle split parts=2,
+                       draw, minimum width=1cm,font=\small,
+                      rectangle split part align={center}, inner sep=1pt]
+                      (queue) {%
+                          \mintinline[fontsize=\tiny]{python}{greet("Alice")}
+                          \nodepart{two} \mintinline[fontsize=\tiny]{python}{greet("Bob")}};
 
-        \end{frame}
-        \begin{frame}[t]{joblib}
+                \draw (1, -1.5) node[rectangle split,
+                    rectangle split parts=2,
+                       draw, minimum width=1cm,font=\small,
+                      rectangle split part align={center}, inner sep=1pt]
+                      (result queue) {%
+                          \mintinline[fontsize=\tiny]{python}{result_1}
+                          \nodepart{two} \mintinline[fontsize=\tiny]{python}{result_2}};
+                % \draw[visible on=<2->, ->] (queue.south) edge (-1, -3) (child1);
+                      \draw[->] (queue.south) |- ++(0, -1.21) -- (child1.west);
+                      \draw[->] (queue.south) |- ++(0, -2.22) -- (child2.west);
 
-        \end{frame}
+                      \draw[->]  (child2.east) |- ++(0.35, 0) -- (result queue.south);
+                      \draw[->]  (child1.east)|- ++(0.35, 0) -- (result queue.south);
+
+                      \draw[->, draw=gray]  (result queue) |- ++(0, 1.2);
+                      \draw[->, draw=gray]  (main.193) -- ++(0, -1);
+
+                    \node[draw=gray, visible on=<3->, ultra thick, inner sep=3mm,fit=(queue) (child2) (result queue) (queue)] (pool) {};
+                    \draw (1, -6) node[font=\tiny, visible on = <3->, fill=gray!10] at (pool.250) {%
+                      \mintinline[fontsize=\tiny]{python}{mp.Pool}}; ;
+                \end{tikzpicture}
+            }
+            \end{column}
+        \end{columns}
+        \uncover<3>{This structure is abstracted away in the \mycode[\small]{mp.Pool}
+        class}
+    \end{frame}
+
+    \begin{frame}[fragile]{\mycode[\small]{multiprocessing} portability}
+        \small
+        \mycode[\scriptsize]{multiprocessing} has some issues with:
+        \uncover<2->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            & \\
+            \includegraphics[width=\linewidth] {media/cross-emoji.png} &
+            interactive sessions (\faWindows \, + \mycode[\tiny]{IPython, Jupyter}) \\
+        \end{tabular}
+        \vspace{-0.5cm}
+        \inputminted[fontsize=\tiny,bgcolor=beige]{pycon}{scripts/interactive_session_windows.txt}
+        \vspace{-1cm}
+        \inputminted[fontsize=\tiny,bgcolor=beige]{pycon}{scripts/interactive_session_windows_tb.txt}
+
+        \vspace{-0.5cm}
+        }
+        \uncover<3->{%
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/cross-emoji.png} &
+            external libraries (\faApple \, + \mycode{numpy}, \mycode{OpenMP}) \\
+        \end{tabular}}
+        \uncover<4->{%
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/cross-emoji.png} & recovering from child processes crashes
+        \end{tabular}}
+    \end{frame}
+
+    \begin{frame}[t]{\mycode[\small]{loky}}
+        \vspace{1em}
+        \mycode[\small]{loky} is a third party package, that provides a more
+        robust process pool implementation. It works out of the box on:
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            & \\
+            \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
+            All \mycode[\scriptsize]{Python} versions \\ \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
+            All Operating Systems \\
+            \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
+            Interactive shells\\
+            & \\
+        \end{tabular}
+        \vspace{1em}
+        It is also the official backend of \mycode{scikit-learn}
+
+    \end{frame}
+
+    \begin{frame}[fragile]{wait...}
+        \mycode{loky} is built on top of another standard library module:
+        \mycode{concurrent.futures}. The features of loky are regularly ported
+        to \mycode{concurrent.futures} upstream.
+
+        \begin{flushright}
+            Why not building on top of \mycode{mp.pool}?
+        \end{flushright}
+        mostly because \mycode{mp.Pool} is suspected to have unfixeable deadlocks.
+
+    \end{frame}
+
+    \begin{frame}[fragile]{User API}
+        \scriptsize \mycode{concurrent futures} and \mycode{loky} \textbf{only expose (the same) worker pool} objects
+        \bigskip
+
+
+        \uncover<2->{
+            \alt<3>{
+        using \mycode{loky}
+        \smallskip
+        \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/loky.py}
+        }{
+        using \mycode{concurent.futures}
+        \smallskip
+        \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/concurrent_futures.py}
+        }}
+    \end{frame}
+
+    \begin{frame}[t]{joblib}
+    \end{frame}
     \subsection{From one to another}
         \begin{frame}[t]{going upstream}
 
@@ -376,7 +600,7 @@ clf.fit(X, y)  # runs on 4 cores!
 \begin{frame}[fragile]{}
     \setbeamercolor{block body}{bg=beige}
     \begin{beamerboxesrounded}{}
-        \inputminted[fontfamily=fvm, bgcolor=beige]{python}{scripts/test_script.py}
+        \inputminted[bgcolor=beige]{python}{scripts/test_script.py}
     \end{beamerboxesrounded}
 \end{frame}
 \end{document}
