@@ -3,5 +3,6 @@
 >>> def greet_friend(name):
 ...     return "hello {}!".format(name)
 ...
->>> for result in executor.map(greet_friend, ("Alice", "Bob")):
-...     print(result)
+>>> results = executor.map(greet_friend, ("Alice", "Bob"))  # non-blocking
+>>> for r in results:  # blocking until the next task completes.
+...     print(r)

@@ -1,0 +1,4 @@
+$python3.7 -m timeit  'import pickle; pickle.dumps(list(range(100000)))'
+50 loops, best of 5: 4.39 msec per loop
+$python3.7 -m timeit  'import cloudpickle; cloudpickle.dumps(list(range(100000)))'
+2 loops, best of 5: 119 msec per loop
