@@ -67,8 +67,9 @@
         ]
 \end{frame}
 
-\section{Python Interfaces with Parallel Computing}
+\section{Parallel computing in machine learning - an overview}
     \subsection{Python? }
+
     \begin{frame}[t]{Python? What for?}
         \setbeamercolor{block body}{bg=gray!80}
         \setbeamercolor{frametitle}{bg=gray!80}
@@ -76,7 +77,7 @@
         \begin{figure}[htpb]
             \vspace*{-0.5cm}
             \hspace*{-1.0cm}
-            \includegraphics[width=1\linewidth]{media/psf_usage_survey.png}
+            \alt<2>{\includegraphics[width=1\linewidth]{media/psf_usage_survey_highlighted.png}}{\includegraphics[width=1\linewidth]{media/psf_usage_survey.png}}
             \vspace*{-0.5cm}
             \label{fig:media/better_screenshot_python_development_results}
         \end{figure}
@@ -97,7 +98,7 @@
         \uncover<2->{
         \begin{tabular}{m{1cm} m{5cm} m{3cm}}
             \includegraphics[width=\linewidth]{media/pandas.png} & pandas for
-            machine learning &
+            data analytics &
             \includegraphics[scale=0.4]{media/used_by_pandas.png} \\
 
         \end{tabular}
@@ -105,7 +106,7 @@
         \uncover<3->{
         \begin{tabular}{m{1cm} m{5cm} m{3cm}}
             \includegraphics[width=\linewidth]{media/numpy-logo.png} & numpy
-            for machine learning &
+            for n-dimensional arrays &
             \includegraphics[scale=0.4]{media/used_by_numpy.png} \\
             \\
         \end{tabular}
@@ -128,36 +129,35 @@
     \begin{frame}[t]{Parallel computing? Why?}
         \small
         \vspace{1cm}
-        independent, similar computation happens a lot in machine learning. We
-        call it embarassingly parallel tasks.
+        Independent, similar computation happens a lot in machine learning. We
+        call it embarassingly parallel tasks. Famous examples:
         \vspace{1cm}
         \begin{itemize}
-            \item cross validation
-            \item multi-class classification
-            \item hyperparameter selection using grid search
+            \item<2-> cross validation
+            \item<3-> multi-class classification
+            \item<4-> hyperparameter selection using grid search
         \end{itemize}
         \vspace{1cm}
+        \uncover<5>{
         \begin{flushright}
             \small
-        Exists for many scikit-learn estimators, but not all.
+        Happens for many scikit-learn estimators, but not all.
         \end{flushright}
+    }
     \end{frame}
 
     \begin{frame}[fragile]{Parallel computing in scikit-learn made easy}
         \small
         Parallelization is:
         \begin{itemize}
-            \item ubiquituous in \mycode{scikit-learn}
-            \item can be activated painlessly using the \mycode{n_jobs} parameter of estimators
+            \item<2-> ubiquituous in \mycode{scikit-learn}
+            \item<3-> can be activated painlessly using the \mycode{n_jobs} parameter of estimators
         \end{itemize}
-        \begin{beamerboxesrounded}{}
-            \begin{minted}[bgcolor=beige, fontsize=\scriptsize]{python}
-clf = LogisticRegression(solver='saga', n_jobs=4)
-X, y = get_data()
-clf.fit(X, y)  # runs on 4 cores!
-            \end{minted}
-        \end{beamerboxesrounded}{}
+        \uncover<4->{
+        \inputminted[fontsize=\scriptsize,bgcolor=beige]{python}{scripts/logistic_regression.py}
+        }
     \end{frame}
+
     \begin{frame}[fragile]{Multithreading or multiprocessing?}
         Parallelism usually exist under two different forms:
         \uncover<2>{
@@ -392,37 +392,27 @@ clf.fit(X, y)  # runs on 4 cores!
         \end{figure}
     \end{frame}
 
-    % \subsection{At which level?}
-    %     \begin{frame}[t]{The Python Interpreter}
+    \begin{frame}[fragile]{decreasing mutliprocessing overheads}
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/lock-emoji.png} &
+            \textit{thread-based parallelism} is useful only if the compute-heavy part
+            of your program releases \mycode{Python}'s GIL. This is not
+            something parallel computing libraries have a say on. \\
+        \end{tabular}
+        \vspace{1em}
 
-    %     \end{frame}
-    %     \begin{frame}[t]{Parallelism at the Python level}
+        \uncover<2->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/unlocked-lock-emoji.png} &
+            \textit{process-based parallesim} guarantees parallel execution of
+            \mycode{Python} code, but this comes at the cost of \textcolor{red}{transfering
+            data} to the newly-created processes
+        \end{tabular}
+        }
+    \end{frame}
 
-    %     \end{frame}
-    %     \begin{frame}[t]{Parallelism at the C level}
-    %     \end{frame}
-    % \subsection{Using which code?}
-    %     \begin{frame}[t]{The python virtual machine}
+\section{Built-in and Third Party multiprocessing ressources}
 
-    %     \end{frame}
-    %     \begin{frame}[t]{Arbirtray code execution}
-
-    %     \end{frame}
-    %     \begin{frame}[t]{Consequences for paralle computing}
-
-    %     \end{frame}
-    % \subsection{In practice?}
-    %     \begin{frame}[t]{several matrix-matrix multiplication}
-    %         \begin{itemize}
-    %             \item using python threads
-    %             \item using python processes
-    %             \item using BLAS parallelism
-    %         \end{itemize}
-    %     \end{frame}
-
-
-
-\section{Built-in and Third Party ressources}
     \subsection{In the Standard Library}
 
     \begin{frame}[fragile]{\mycode[\small]{multiprocessing}}
@@ -553,6 +543,8 @@ clf.fit(X, y)  # runs on 4 cores!
         \end{tabular}}
     \end{frame}
 
+    \subsection{Third-party extensions}
+
     \begin{frame}[t]{\mycode[\small]{loky}}
         \vspace{1em}
         \mycode[\small]{loky} is a third party package, that provides a more
@@ -638,26 +630,11 @@ clf.fit(X, y)  # runs on 4 cores!
         \only<4>{}
 
     \end{frame}
-\section{Optimizing data communication}
-    \begin{frame}[fragile]{decreasing mutliprocessing overheads}
-        \begin{tabular}{m{0.5cm} m{10cm}}
-            \includegraphics[width=\linewidth] {media/lock-emoji.png} &
-            \textit{thread-based parallelism} is useful only if the compute-heavy part
-            of your program releases \mycode{Python}'s GIL. This is not
-            something parallel computing libraries have a say on. \\
-        \end{tabular}
-        \vspace{1em}
 
-        \uncover<2->{
-        \begin{tabular}{m{0.5cm} m{10cm}}
-            \includegraphics[width=\linewidth] {media/unlocked-lock-emoji.png} &
-            \textit{process-based parallesim} guarantees parallel execution of
-            \mycode{Python} code, but this comes at the cost of \textcolor{red}{transfering
-            data} to the newly-created processes
-        \end{tabular}
-        }
-    \end{frame}
+\section{Optimizing data communication}
+
     \subsection{Serialization in \mycode{python}}
+
     % \begin{frame}[t]{Serializtion}
     %     \footnotesize \textbf{Serialization} defines the process of transforming an in-memory object
     %     into a sequence of bytes.
@@ -693,6 +670,9 @@ clf.fit(X, y)  # runs on 4 cores!
 
         \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/pickle_example.py}
     \end{frame}
+
+\subsection{Better support for pickle extensions}
+
     \begin{frame}[fragile]{\mycode[\small]{pickle} extensions}
         \begin{tabular}{m{0.5cm} m{10cm}}
             \includegraphics[width=\linewidth] {media/police-car-light-emoji.png} &
@@ -714,6 +694,7 @@ clf.fit(X, y)  # runs on 4 cores!
         \inputminted[bgcolor=beige, fontsize=\tiny]{pycon}{scripts/cloudpickle_example_2.py}
     }
     \end{frame}
+
     \begin{frame}[fragile]{\mycode[\small]{pickle} extensions (2)}
         \begin{itemize}
             \footnotesize
@@ -727,6 +708,7 @@ clf.fit(X, y)  # runs on 4 cores!
         \inputminted[bgcolor=beige, fontsize=\tiny]{shell}{scripts/speed_pickle_cloudpickle_py37.txt}
         }
     \end{frame}
+
     \begin{frame}[fragile]{extending the C-optimized \mycode[\small]{pickle}}
         in \mycode{Python 3.8}, \mycode{pickle} extensions can now extend the
         C-optimized \mycode{pickle} module \footnote{\tiny joint work with ogrisel and Antoine Pitrou}
@@ -741,36 +723,82 @@ clf.fit(X, y)  # runs on 4 cores!
         \end{tabular}
         }
     \end{frame}
-\subsection{PEP 574}
+
+\subsection{PEP 574: \mycode{pickle} protocol 5}
+
 \begin{frame}[t]{\mycode[\small]{pickle} protocol 5}
         \vspace{2em}
         \begin{itemize}
             \footnotesize
               \setlength\itemsep{1em}
               \item[] \faDatabase \quad \mycode{pickle} was originally designed for on-disk
-                  persistency of \mycode{Python} objects
+                  persistency of \mycode{Python} objects.
                \item[]<2-> \faExchange \quad Now, it is used wildely to communicate objects between,
-                process, which is done in-memory. RAM usage should be optimized
+                   process, which is done in-memory. \textbf{RAM usage becomes
+                       a critical concern.}
         \end{itemize}
         \vspace{1em}
+        \uncover<3->{
         \mycode[\small]{pickle} protocol 5 \footnote{work by Antoine Pitrou} addition:
         \mycode[\small]{PickleBuffer}: -50\% of memory footprint during
         pickling of large \mycode[\small]{numpy} arrays
+        }
     \end{frame}
 
-    \begin{frame}[t]{better speed}
-    \end{frame}
-\subsection{out of band serialization}
 \begin{frame}[fragile]{out-of-band serialization}
-    pickle protocol 5
+    \mycode[\footnotesize]{pickle} protocol 5 goes even one step further: It
+    allows delegation of \mycode[\footnotesize]{PEP
+    3118}-compatible objects serialization to third-party code.
+        \begin{tikzpicture}
+  \node[draw, rectangle,             align=center, minimum height=0.5cm] (1)
+      {\footnotesize shape};
+  \node[draw, rectangle, right=0.1cm of 1, align=center, minimum height=0.5cm] (2)
+      {\footnotesize shape};
+  \node[draw, rectangle, right=0.1cm of 2, align=center, minimum height=0.5cm] (3)
+      {\footnotesize flags};
+  \node[alt=<3>{draw=red, thick}{draw=black}, rectangle, right=0.2cm of 3, align=center, minimum height=3cm] (4)
+      {data};
+  \node[draw, thick, inner sep=0.2cm,fit=(4) (4) (1) (4)] (nparray) {};
+  \node[align=left, fill=gray!10] (legend) at (nparray.south) {numpy array};
+  \node[visible on =<2->,draw=olive, thick, inner sep=0.1cm, fit=(1) (1) (1) (3), rectangle]  (metadata){};
+  \node (picklestream) at (6, 2) {};
+  \node (thirdpartystream) at (6, -2) {};
+  \draw[visible on =<2->,color=olive, ->, ultra thick] (metadata.north) |- (picklestream);
+  \draw[visible on=<3->,color=red, ->, ultra thick] (4.south) |- (thirdpartystream);
+  \node[visible on =<2->,right=0.2cm of picklestream] (legend-picklestream) {%
+     \begin{tabular}{c}
+      pickle stream \\(in band)
+      \end{tabular}};
+  \node[visible on =<3->,right=0.2cm of thirdpartystream] (legend-thirdpartystream) {%
+     \begin{tabular}{c}
+      third-party stream \\(out-of-band)
+      \end{tabular}};
+    \node (void) at (6, 3) {};
+        \end{tikzpicture}
 \end{frame}
 
-
-
-\begin{frame}[fragile]{}
-    \setbeamercolor{block body}{bg=beige}
-    \begin{beamerboxesrounded}{}
-        \inputminted[bgcolor=beige]{python}{scripts/test_script.py}
-    \end{beamerboxesrounded}
+\begin{frame}[fragile]{Conclusion}
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/rocket-emoji.png} &
+        parallel computing often generates significant speedups when
+            executing machine learning code \\
+                                                                        & \\
+        \end{tabular}
+        \uncover<2->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/thinking-face-emoji.png} &
+        which backend (processes vs. threads) to use is a
+            problem-specific question: what's the size of your data, does your
+            compute-hungry code releases the GIL... \\
+                                                                        & \\
+        \end{tabular}
+        }
+        \uncover<3->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
+        thankfully, activating parallelism, and switching backends can be
+            done using one line of code in \mycode{joblib}
+        \end{tabular}
+        }
 \end{frame}
 \end{document}
