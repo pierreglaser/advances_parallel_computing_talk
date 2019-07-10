@@ -1,6 +1,4 @@
-\documentclass[13pt, usenames,dvipsnames]{beamer} %
-% \renewcommand{\baselinestretch}{1.3}
-\usepackage[T1]{fontenc}
+\documentclass[13pt, usenames,dvipsnames]{beamer} % % \renewcommand{\baselinestretch}{1.3} \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{minted}
 \usepackage{xcolor}
@@ -86,21 +84,44 @@
         }
     \end{frame}
 
-    \begin{frame}{A growing scientific computing ecosystem}
-        \begin{tikzpicture}
-        \node[align=left] (inst) at (1, 0) {%
-        \includegraphics[scale=0.40]{media/scikit-learn-logo.png}};
-        \node[align=left] (inst) at (1, -1) {%
-        \includegraphics[scale=0.4]{media/used_by_scikit-learn.png}};
-        \node[align=left] (inst) at (8.5, 0) {%
-        \includegraphics[scale=0.30]{media/numpy-logo.png}};
-        \node[align=left] (inst) at (8.5, -1.5) {%
-        \includegraphics[scale=0.4]{media/used_by_numpy.png}};
-        \node[align=left] (inst) at (4.5, -3) {%
-        \includegraphics[scale=0.40]{media/pandas.png}};
-        \node[align=left] (inst) at (4.5, -4.3) {%
-        \includegraphics[scale=0.4]{media/used_by_pandas.png}};
-        \end{tikzpicture}
+    \begin{frame}{A growing data science ecosystem}
+        \uncover<1->{
+        \begin{tabular}{m{1cm} m{5cm} m{3cm}}
+            & \\
+            \includegraphics[width=\linewidth]{media/scikit-learn-logo.png} &
+            scikit-learn for machine learning &
+            \includegraphics[scale=0.4]{media/used_by_scikit-learn.png} \\
+        \end{tabular}
+        }
+        \uncover<2->{
+        \begin{tabular}{m{1cm} m{5cm} m{3cm}}
+            \includegraphics[width=\linewidth]{media/pandas.png} & pandas for
+            machine learning &
+            \includegraphics[scale=0.4]{media/used_by_pandas.png} \\
+
+        \end{tabular}
+        }
+        \uncover<3->{
+        \begin{tabular}{m{1cm} m{5cm} m{3cm}}
+            \includegraphics[width=\linewidth]{media/numpy-logo.png} & numpy
+            for machine learning &
+            \includegraphics[scale=0.4]{media/used_by_numpy.png} \\
+            \\
+        \end{tabular}
+        }
+        % \begin{tikzpicture}
+        % \node[align=left] (inst) at (1, 0) {%
+        % \node[align=left] (inst) at (1, -1) {%
+        % \includegraphics[scale=0.4]{media/used_by_scikit-learn.png}};
+        % \node[align=left] (inst) at (8.5, 0) {%
+        % \includegraphics[scale=0.30]{media/numpy-logo.png}};
+        % \node[align=left] (inst) at (8.5, -1.5) {%
+        % \includegraphics[scale=0.4]{media/used_by_numpy.png}};
+        % \node[align=left] (inst) at (4.5, -3) {%
+        % \includegraphics[scale=0.40]{media/pandas.png}};
+        % \node[align=left] (inst) at (4.5, -4.3) {%
+        % \includegraphics[scale=0.4]{media/used_by_pandas.png}};
+        % \end{tikzpicture}
     \end{frame}
 
     \begin{frame}[t]{Parallel computing? Why?}
@@ -112,7 +133,7 @@
         \begin{itemize}
             \item cross validation
             \item multi-class classification
-            \item random forests \tiny{(in general: ensemble models)}
+            \item hyperparameter selection using grid search
         \end{itemize}
         \vspace{1cm}
         \begin{flushright}
@@ -121,26 +142,29 @@
         \end{flushright}
     \end{frame}
 
-    \begin{frame}[fragile]{User API}
+    \begin{frame}[fragile]{Parallel computing in scikit-learn made easy}
         \small
-        Parallelization can be enabled using the \verb|n_jobs| option.
+        Parallelization is:
+        \begin{itemize}
+            \item ubiquituous in \mycode{scikit-learn}
+            \item can be activated painlessly using the \mycode{n_jobs} parameter of estimators
+        \end{itemize}
         \begin{beamerboxesrounded}{}
-            \begin{minted}[bgcolor=beige, fontsize=\tiny]{python}
+            \begin{minted}[bgcolor=beige, fontsize=\scriptsize]{python}
 clf = LogisticRegression(solver='saga', n_jobs=4)
 X, y = get_data()
 clf.fit(X, y)  # runs on 4 cores!
             \end{minted}
         \end{beamerboxesrounded}{}
-        \textit{" Let us know if you want to use more CPU resources, because
-        parallelizing your models is not hard for you"}
     \end{frame}
-
     \begin{frame}[fragile]{Multithreading or multiprocessing?}
-        Should these separate computations be ran
+        Parallelism usually exist under two different forms:
+        \uncover<2>{
         \begin{itemize}
-            \item using multiple threads in the main process?
-            \item using multiple processes?
+            \item executing multiple threads of a same process in parallel
+            \item executing  multiple processes in parallel
         \end{itemize}
+        }
     \end{frame}
 
     \begin{frame}[t]{Cross-validation}
@@ -426,7 +450,8 @@ clf.fit(X, y)  # runs on 4 cores!
                 % \draw (0, -2) node[rectangle, inner sep=1pt, draw=gray, font=\tiny] (queue){child process};
                 \draw (0, -1.5) node[rectangle split, visible on=<3->, rectangle split parts=3,
                        draw, minimum width=1cm,font=\small,
-                      rectangle split part align={center}, inner sep=1pt]
+                      rectangle split part align={center}, inner sep=1pt,
+                      alt=<3>{fill=yellow}{}]
                       (queue) {};
                   \draw (2, -1.5) node[visible on=<3->, alt=<3>{fill=yellow}{fill=gray!10}]
                       (queue label) {\mintinline[fontsize=\tiny]{python}{mp.Queue}};
@@ -480,11 +505,11 @@ clf.fit(X, y)  # runs on 4 cores!
                           \mintinline[fontsize=\tiny]{python}{result_1}
                           \nodepart{two} \mintinline[fontsize=\tiny]{python}{result_2}};
                 % \draw[visible on=<2->, ->] (queue.south) edge (-1, -3) (child1);
-                      \draw[->] (queue.south) |- ++(0, -1.21) -- (child1.west);
-                      \draw[->] (queue.south) |- ++(0, -2.22) -- (child2.west);
+                      \draw[->] (queue.south) |- (child1.west);
+                      \draw[->] (queue.south) |- (child2.west);
 
-                      \draw[->]  (child2.east) |- ++(0.35, 0) -- (result queue.south);
-                      \draw[->]  (child1.east)|- ++(0.35, 0) -- (result queue.south);
+                      \draw[->]  (child2.east) -| (result queue.south);
+                      \draw[->]  (child1.east) -| (result queue.south);
 
                       \draw[->, draw=gray]  (result queue) |- ++(0, 1.2);
                       \draw[->, draw=gray]  (main.193) -- ++(0, -1);
@@ -572,21 +597,86 @@ clf.fit(X, y)  # runs on 4 cores!
         \smallskip
         \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/concurrent_futures.py}
         }}
+        \uncover<4>{
+        \mycode{executor.map} is \textbf{async}. It returns a generator which
+        blocks upon consumption until the next task completes.
+        }
     \end{frame}
 
-    \begin{frame}[t]{joblib}
+    \begin{frame}[fragile]{\mycode{joblib}}
+        \small
+        \mycode{joblib} is a parallel computing library built on top of of
+        \mycode{loky}. It provides many useful features and optimizations for
+        data scientists, including:
+        \vspace{1em}
+        \uncover<2->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/rocket-emoji.png} & on-demand recomputing \\
+        \end{tabular}
+        \only<2>{
+        \vspace{-1em}
+        \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/joblib_memory.py}
+            }
+        }
+        \only<3->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/rocket-emoji.png} & optimized transfer of \mycode{numpy} arrays \\
+        \end{tabular}
+        }
+        \uncover<4->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/rocket-emoji.png} & a backend-agnostic user API \\
+        \end{tabular}
+        \alt<5>{
+            \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/parallel_delayed_threading.py}
+        }{
+            \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/parallel_delayed_loky.py}
+        }
+        }
+        \only<3->{\vspace{6em}}
+        \only<4>{}
+
     \end{frame}
-    \subsection{From one to another}
-        \begin{frame}[t]{going upstream}
+\section{Optimizing data communication}
+    \begin{frame}[fragile]{decreasing mutliprocessing overheads}
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/lock-emoji.png} &
+            \textit{thread-based parallelism} is useful only if the compute-heavy part
+            of your program releases \mycode{Python}'s GIL. This is not
+            something parallel computing libraries have a say on. \\
+        \end{tabular}
+        \vspace{1em}
 
-        \end{frame}
-
-\section{Recent Advances}
-\subsection{Why we need better IPC}
-\subsection{Better extensibility of the pickle module}
+        \uncover<2->{
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/unlocked-lock-emoji.png} &
+            \textit{process-based parallesim} guarantees parallel execution of
+            \mycode{Python} code, but this comes at the cost of \textcolor{red}{transfering
+            data} to the newly-created processes
+        \end{tabular}
+        }
+    \end{frame}
+    \subsection{Serialization in \mycode{python}}
+    \begin{frame}[t]{Serializtion}
+        Serialization defines the process of transforming an in-memory object
+        into a sequence of bytes.
+        \begin{tikzpicture}
+            \draw (-2.5, 0) node[rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
+                (process-1){[1,2,3]};
+            \draw (2.5, 0) node[rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
+                (process-2){\uncover<3>{[1,2,3]}};
+            \draw (0, 2) node[visible on = <2->, rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
+                (buffer){\uncover<2->{0111101...01}};
+            \draw (-5, 3.5) node[] (void){};
+            \node[below = 0.1cm of process-1] (label-1) {process-1};
+            \node[below = 0.1cm of process-2] (label-2) {process-2};
+            \node[visible on = <3->, above right  = 0.1cm and -0.5cm of process-2] (ser) {deserialization};
+            \node[visible on = <2->, above left  = 0.1cm and -0.5cm of process-1] (deser) {serialization};
+            \draw[->, visible on = <2->] (process-1.north) |- (buffer.west);
+            \draw[->, visible on = <3->] (buffer.east) -| (process-2.north);
+        \end{tikzpicture}
+    \end{frame}
 \subsection{PEP 574}
-    \begin{frame}[t]{principle}
-    \end{frame}
 
     \begin{frame}[t]{better memory footrpint}
     \end{frame}
