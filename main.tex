@@ -11,6 +11,7 @@
 \usepackage{fontawesome}
 \usepackage{array}
 \usepackage{hyperref}
+\usepackage{transparent}
 
 % \usepackage[export]{adjustbox}
 
@@ -657,33 +658,112 @@ clf.fit(X, y)  # runs on 4 cores!
         }
     \end{frame}
     \subsection{Serialization in \mycode{python}}
-    \begin{frame}[t]{Serializtion}
-        Serialization defines the process of transforming an in-memory object
-        into a sequence of bytes.
-        \begin{tikzpicture}
-            \draw (-2.5, 0) node[rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
-                (process-1){[1,2,3]};
-            \draw (2.5, 0) node[rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
-                (process-2){\uncover<3>{[1,2,3]}};
-            \draw (0, 2) node[visible on = <2->, rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
-                (buffer){\uncover<2->{0111101...01}};
-            \draw (-5, 3.5) node[] (void){};
-            \node[below = 0.1cm of process-1] (label-1) {process-1};
-            \node[below = 0.1cm of process-2] (label-2) {process-2};
-            \node[visible on = <3->, above right  = 0.1cm and -0.5cm of process-2] (ser) {deserialization};
-            \node[visible on = <2->, above left  = 0.1cm and -0.5cm of process-1] (deser) {serialization};
-            \draw[->, visible on = <2->] (process-1.north) |- (buffer.west);
-            \draw[->, visible on = <3->] (buffer.east) -| (process-2.north);
-        \end{tikzpicture}
+    % \begin{frame}[t]{Serializtion}
+    %     \footnotesize \textbf{Serialization} defines the process of transforming an in-memory object
+    %     into a sequence of bytes.
+
+    %     \begin{tikzpicture}
+    %         \draw (-2.5, 0) node[rectangle, draw, rounded corners,
+    %             font=\footnotesize, minimum width = 2cm] (process-1){\mycode[\footnotesize]{[1, 2, 3]}};
+    %         \draw (2.5, 0) node[rectangle, draw, rounded corners,
+    %             font=\footnotesize, minimum width = 2cm]
+    %             (process-2){\uncover<4>{\mycode[\footnotesize]{[1, 2, 3]}}};
+
+    %         \draw (0, 2) node[visible on = <2->, rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
+    %             (buffer){\uncover<2->{\mycode[\footnotesize]{0111101...01}}};
+    %         \draw (-5, 3.5) node[] (void){};
+    %         \node[below = 0.1cm of process-1] (label-1) {process-1};
+    %         \node[below = 0.1cm of process-2] (label-2) {process-2};
+    %         \node[visible on = <4->, above right  = 0.1cm and -0.5cm of process-2] (ser) {deserialization};
+    %         \node[visible on = <2->, above left  = 0.1cm and -0.5cm of process-1] (deser) {serialization};
+    %         \draw[->, visible on = <2->] (process-1.north) |- (buffer.west);
+    %         \draw[->, visible on = <4->] (buffer.east) -| (process-2.north);
+    %     \end{tikzpicture}
+    %     \uncover<3->{
+    %         The bytes string contains the instructions sequence that has to be
+    %         executed to reconstruct the object in a fresh python environment
+    %     }
+    % \end{frame}
+    \begin{frame}[t]{the \mycode[\small]{pickle} protocol}
+        \vspace{2em}
+        \footnotesize
+        \mycode[\small]{Python} defines a serialization protocol called
+        \mycode[\small]{pickle}, and provides an implementation of it in the
+        standard library.
+
+        \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/pickle_example.py}
+    \end{frame}
+    \begin{frame}[fragile]{\mycode[\small]{pickle} extensions}
+        \begin{tabular}{m{0.5cm} m{10cm}}
+            \includegraphics[width=\linewidth] {media/police-car-light-emoji.png} &
+        \footnotesize
+        for security reasons, the pickle implementation blocks the
+        serialization of some \mycode{Python} constructs
+        \end{tabular}
+        \uncover<2->{
+        \inputminted[bgcolor=beige, fontsize=\tiny]{pycon}{scripts/cloudpickle_example.py}
+    }
+        \uncover<3->{
+        \vspace{-3.2em}
+        \inputminted[bgcolor=beige, fontsize=\tiny]{pycon}{scripts/pickle_tb.txt}
+    }
+        \uncover<4->{
+        \footnotesize
+        In practice \mycode{scikit-learn}, as well as many distributed computing
+        libraries use \mycode{pickle} extension libraries, such as \mycode{cloudpickle}
+        \inputminted[bgcolor=beige, fontsize=\tiny]{pycon}{scripts/cloudpickle_example_2.py}
+    }
+    \end{frame}
+    \begin{frame}[fragile]{\mycode[\small]{pickle} extensions (2)}
+        \begin{itemize}
+            \footnotesize
+              \setlength\itemsep{1em}
+            \item[] The \mycode[\tiny]{pickle} module is implemented both as a pure
+                \mycode{Python} module, and as a \mycode[\tiny]{C}-optimized module.
+            \item[]<2-> \mycode[\tiny]{pickle} extensions however could only extend the slow
+        pythonic \mycode[\tiny]{pickle}
+        \end{itemize}
+        \uncover<3->{
+        \inputminted[bgcolor=beige, fontsize=\tiny]{shell}{scripts/speed_pickle_cloudpickle_py37.txt}
+        }
+    \end{frame}
+    \begin{frame}[fragile]{extending the C-optimized \mycode[\small]{pickle}}
+        in \mycode{Python 3.8}, \mycode{pickle} extensions can now extend the
+        C-optimized \mycode{pickle} module \footnote{\tiny joint work with ogrisel and Antoine Pitrou}
+        \uncover<2->{
+        \inputminted[bgcolor=beige, fontsize=\tiny]{shell}{scripts/speed_pickle_cloudpickle_py38.txt}
+        }
+        \uncover<3->{
+        \vspace{-1em}
+        \begin{tabular}{m{6.5cm} m{1cm} m{10cm}}
+            & \includegraphics[width=\linewidth] {media/rocket-emoji.png} &
+        \LARGE \textcolor{olive}{30x faster!}
+        \end{tabular}
+        }
     \end{frame}
 \subsection{PEP 574}
-
-    \begin{frame}[t]{better memory footrpint}
+\begin{frame}[t]{\mycode[\small]{pickle} protocol 5}
+        \vspace{2em}
+        \begin{itemize}
+            \footnotesize
+              \setlength\itemsep{1em}
+              \item[] \faDatabase \quad \mycode{pickle} was originally designed for on-disk
+                  persistency of \mycode{Python} objects
+               \item[]<2-> \faExchange \quad Now, it is used wildely to communicate objects between,
+                process, which is done in-memory. RAM usage should be optimized
+        \end{itemize}
+        \vspace{1em}
+        \mycode[\small]{pickle} protocol 5 \footnote{work by Antoine Pitrou} addition:
+        \mycode[\small]{PickleBuffer}: -50\% of memory footprint during
+        pickling of large \mycode[\small]{numpy} arrays
     \end{frame}
 
     \begin{frame}[t]{better speed}
     \end{frame}
-\subsection{built-in shared memory in the standard library}
+\subsection{out of band serialization}
+\begin{frame}[fragile]{out-of-band serialization}
+    pickle protocol 5
+\end{frame}
 
 
 
