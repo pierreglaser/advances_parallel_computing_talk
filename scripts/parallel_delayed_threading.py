@@ -1,2 +1,2 @@
-Parallel(n_jobs=2, backend="threading")(
-    delayed(greet)(friend) for friend in ("Alice", "Bob"))
+with parallel_backend("threading", n_jobs=2):
+    do_stuff_in_parallel()

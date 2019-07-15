@@ -1,4 +1,11 @@
-\documentclass[13pt, usenames,dvipsnames]{beamer} % % \renewcommand{\baselinestretch}{1.3} \usepackage[T1]{fontenc}
+\documentclass[13pt, usenames,dvipsnames]{beamer} % \usepackage[defaultmono]{droidmono}
+% \renewcommand*\familydefault{\ttdefault} %% Only if the base font of the document is to be typewriter style
+% \usepackage[T1]{fontenc}
+% \makeatletter
+% \input droid/t1fdm.fd
+% \makeatother
+
+\usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{minted}
 \usepackage{xcolor}
@@ -34,6 +41,7 @@
 \definecolor{beige}{rgb}{0.96, 0.96, 0.86}
 \definecolor{chartreuse}{rgb}{0.87, 1.0, 0.0}
 
+
 \sethlcolor{yellow}
 
 \usemintedstyle{manni}
@@ -42,13 +50,29 @@
 \setbeamertemplate{footline}[frame number]
 \setbeamercolor{normal text}{fg=black!80,bg=white}
 
+%gets rid of bottom navigation bars
+\setbeamertemplate{footline}[frame number]{}
+
+%gets rid of navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
 \newcommand{\mycode}[2][\tiny] {\mintinline[bgcolor=gray!10, fontsize=#1]{python}{#2}}
 
 \title{Parallel Computing in Python}
 \subtitle{Current State and Recent Advances}
-\author{\href{http://kbroman.org}{Pierre Glaser}
+\author{\href{http://kbroman.org}{Pierre Glaser, INRIA}
 \href{https://github.com/pierreglaser}{\faGithub}
 \href{https://twitter.com/pierreglaser}{\faTwitter}}
+\titlegraphic{
+    \begin{columns}
+        \begin{column}{0.7\textwidth}
+    \includegraphics[width=3cm]{media/inria-logo.png}
+        \end{column}
+        \begin{column}{0.3\textwidth}
+       \includegraphics[width=3cm]{media/logo_parietal.png}
+        \end{column}
+    \end{columns}
+   }
 
 
 \begin{document}
@@ -60,14 +84,21 @@
 
 \begin{frame}[t]{}
     \center
-    \vspace{3em}
-    \tableofcontents[
-        subsectionstyle=hide/hide/hide,
-        sectionstyle=show
-        ]
+    \vspace{7em}
+    \begin{itemize}
+        \setlength\itemsep{1em}
+        \item[]\textbf{Parallel computing in machine learning - an overview }
+        \item[]\textbf{Built-in and Third Party multiprocessing ressources}
+        \item[]\textbf{Optimizing data communication}
+    \end{itemize}
 \end{frame}
 
+
 \section{Parallel computing in machine learning - an overview}
+    \begin{frame}[t]{}
+        \vspace{10em}
+        \centering{\large \textbf{Parallel computing in machine learning - an overview}}
+    \end{frame}
     \subsection{Python? }
 
     \begin{frame}[t]{Python? What for?}
@@ -90,9 +121,9 @@
         \uncover<1->{
         \begin{tabular}{m{1cm} m{5cm} m{3cm}}
             & \\
-            \includegraphics[width=\linewidth]{media/scikit-learn-logo.png} &
-            scikit-learn for machine learning &
-            \includegraphics[scale=0.4]{media/used_by_scikit-learn.png} \\
+            \includegraphics[width=\linewidth]{media/numpy-logo.png} & numpy
+            for n-dimensional arrays &
+            \includegraphics[scale=0.4]{media/used_by_numpy.png} \\
         \end{tabular}
         }
         \uncover<2->{
@@ -105,9 +136,9 @@
         }
         \uncover<3->{
         \begin{tabular}{m{1cm} m{5cm} m{3cm}}
-            \includegraphics[width=\linewidth]{media/numpy-logo.png} & numpy
-            for n-dimensional arrays &
-            \includegraphics[scale=0.4]{media/used_by_numpy.png} \\
+            \includegraphics[width=\linewidth]{media/scikit-learn-logo.png} &
+            scikit-learn for machine learning &
+            \includegraphics[scale=0.4]{media/used_by_scikit-learn.png} \\
             \\
         \end{tabular}
         }
@@ -127,18 +158,17 @@
     \end{frame}
 
     \begin{frame}[t]{Parallel computing? Why?}
-        \small
         \vspace{1cm}
-        Independent, similar computation happens a lot in machine learning. We
+        \textbf{Independent, similar computation} happens a lot in machine learning. We
         call it embarassingly parallel tasks. Famous examples:
         \vspace{1cm}
         \begin{itemize}
             \item<2-> cross validation
-            \item<3-> multi-class classification
-            \item<4-> hyperparameter selection using grid search
+            \item<2-> random forests
+            \item<2-> hyperparameter selection using grid search
         \end{itemize}
         \vspace{1cm}
-        \uncover<5>{
+        \uncover<2>{
         \begin{flushright}
             \small
         Happens for many scikit-learn estimators, but not all.
@@ -147,31 +177,36 @@
     \end{frame}
 
     \begin{frame}[fragile]{Parallel computing in scikit-learn made easy}
-        \small
-        Parallelization is:
+        % \small
+        Parallelization in \mycode[\small]{scikit-learn}:
+        \vspace{1em}
         \begin{itemize}
-            \item<2-> ubiquituous in \mycode{scikit-learn}
-            \item<3-> can be activated painlessly using the \mycode{n_jobs} parameter of estimators
+            \setlength\itemsep{1em}
+            \item<1-> ubiquituous
+            \item<1-> painlessly toggled using estimators's \mycode[\small]{n_jobs} option:
         \end{itemize}
-        \uncover<4->{
+        \uncover<2->{
         \inputminted[fontsize=\scriptsize,bgcolor=beige]{python}{scripts/logistic_regression.py}
         }
     \end{frame}
 
     \begin{frame}[fragile]{Multithreading or multiprocessing?}
         Parallelism usually exist under two different forms:
+        \vspace{1em}
         \uncover<2>{
         \begin{itemize}
+            \setlength\itemsep{1em}
+            \item executing  multiple processes (python programs) in parallel
             \item executing multiple threads of a same process in parallel
-            \item executing  multiple processes in parallel
         \end{itemize}
         }
     \end{frame}
 
-    \begin{frame}[t]{Cross-validation}
+    \begin{frame}[t]{Fitting a random forest}
         \footnotesize
-        I want to fit the same machine learning model on different subsets of
-        the same data.
+        \begin{flushright}
+        I want to fit many small decision trees independently, on the same data.
+        \end{flushright}
         \vspace{1cm}
         \begin{columns}
             \begin{column}{0.5\textwidth}
@@ -185,7 +220,9 @@
                     \item no data transfer
                 \end{itemize}
                 \vspace{0.2cm}
-                -: Python forces threads to run sequentially
+                -: By default, Python forces threads to run sequentially\\
+                The GIL can be released when calling native code
+                (\mycode{numpy}, \mycode{scipy}...)
                 }
                 \only<6->{%
                 \scriptsize
@@ -196,7 +233,7 @@
                 \vspace{0.2cm} \\
                 -: need to pass and copy data around
                 \begin{itemize}
-                    \item larger memory footpring
+                    \item larger memory footprint
                     \item data transfer overhead
                 \end{itemize}
                 }
@@ -225,12 +262,12 @@
                         a & b \\
                         \hline
                         \hline
-                        \rowcolor{beige}
+                        % \rowcolor{beige}
                         1 & 2 \\
                         3 & 4 \\
-                        \rowcolor{beige}
+                        % \rowcolor{beige}
                         5 & 6 \\
-                        \rowcolor{beige}
+                        % \rowcolor{beige}
                         7 & 8 \\
                 \end{tabular}}};
                 \node[align=left, visible on=<4>] (all) at (5, 4) {%
@@ -240,11 +277,11 @@
                         \hline
                         \hline
                         1 & 2 \\
-                        \rowcolor{aliceblue}
+                        % \rowcolor{aliceblue}
                         3 & 4 \\
-                        \rowcolor{aliceblue}
+                        % \rowcolor{aliceblue}
                         5 & 6 \\
-                        \rowcolor{aliceblue}
+                        % \rowcolor{aliceblue}
                         7 & 8 \\
                 \end{tabular}}};
                 \node[align=left, visible on=<5>] (all) at (5, 4) {%
@@ -253,11 +290,11 @@
                         a & b \\
                         \hline
                         \hline
-                        \rowcolor{chartreuse}
+                        % \rowcolor{chartreuse}
                         1 & 2 \\
-                        \rowcolor{chartreuse}
+                        % \rowcolor{chartreuse}
                         3 & 4 \\
-                        \rowcolor{chartreuse}
+                        % \rowcolor{chartreuse}
                         5 & 6 \\
                         7 & 8 \\
                 \end{tabular}}};
@@ -271,62 +308,65 @@
                         3 & 4 \\
                         5 & 6 \\
                         7 & 8 \\
-                    \end{tabular}}};
+                \end{tabular}}};
                 \node[align=left, visible on=<7->] (cv1) at (1.5, 0) {%
+                    \uncover<-7>{
                     \resizebox{0.13\textwidth}{!}{%
                         \begin{tabular}{c c}
                             a & b \\
                             \hline
                             \hline
-                            \rowcolor{beige}
+                            % \rowcolor{beige}
                             1 & 2 \\
-                              &   \\
-                            \rowcolor{beige}
+                            3 & 4 \\
+                            % \rowcolor{beige}
                             5 & 6 \\
-                            \rowcolor{beige}
+                            % \rowcolor{beige}
                             7 & 8 \\
-                    \end{tabular}}};
+                    \end{tabular}}}};
                 \node[align=left, visible on = <7->] (cv2) at (5, 0) {%
+                    \uncover<-7>{
                     \resizebox{0.13\textwidth}{!}{%
                     \begin{tabular}{c c}
                         a & b \\
                         \hline
                         \hline
-                          &   \\
-                        \rowcolor{aliceblue}
+                        % \rowcolor{aliceblue}
+                        1 & 2 \\
                         3 & 4 \\
-                        \rowcolor{aliceblue}
+                        % \rowcolor{aliceblue}
                         5 & 6 \\
-                        \rowcolor{aliceblue}
+                        % \rowcolor{aliceblue}
                         7 & 8 \\
-                \end{tabular}}};
+                \end{tabular}}}};
                 \node[align=left, visible on=<7->] (cv3) at (8.5, 0) {%
+                    \uncover<-7>{
                     \resizebox{0.13\textwidth}{!}{%
                         \begin{tabular}{c c}
                             a & b \\
                             \hline
                             \hline
-                            \rowcolor{chartreuse}
+                            % \rowcolor{chartreuse}
                             1 & 2 \\
-                            \rowcolor{chartreuse}
-                            5 & 6 \\
-                            \rowcolor{chartreuse}
+                            % \rowcolor{chartreuse}
+                            % \rowcolor{chartreuse}
                             3 & 4 \\
-                              &   \\
-                    \end{tabular}}};
+                            5 & 6 \\
+                            7 & 8 \\
+                \end{tabular}}}};
                 \node[align=left, visible on = <2->] (worker3) at (8.5, 1.6){%
                 % \only<-4>{\mycode{Thread-3}}};
-                \temporal<6-7>{\mycode{Thread-3}}{\mycode{Process-3}}{\mycode{Machine-3}}};
+                \temporal<6-7>{\mycode{Thread-3}}{\mycode{Process-3}}{\mycode{Process-3}}};
 
                 \node[align=left, visible on = <2-8>] (worker2) at (5, 1.6){%
                 % \only<-4>{\mycode{Thread-2}}};
-                \temporal<6-7>{\mycode{Thread-2}}{\mycode{Process-2}}{\mycode{Machine-2}}};
+                \temporal<6-7>{\mycode{Thread-2}}{\mycode{Process-2}}{\mycode{Process-2}}};
 
                 \node[visible on = <2->] (worker1) at (1.5, 1.6){%
                 % \only<-4>{\mycode{Thread-1   }}};
                     % \only<-4>{\mycode{Thread-1   }}
                     % \only<-4>{\mycode{Thread-1   }}
-                \temporal<6-7>{\mycode{Thread-1}}{\mycode{Process-1}}{\mycode{Machine-1}}};
+                \temporal<6-7>{\mycode{Thread-1}}{\mycode{Process-1}}{\mycode{Process-1}}};
                 % {\draw[->, visible on=<5->] (all.south)--(cv1.north east);}
                 % {\draw[->, visible on=<6->] (all.south)--(cv2.north);}
                 % {\draw[->, visible on=<7->] (all.south)--(cv3.north west);}
@@ -342,6 +382,25 @@
                 \node[visible on =<7->, draw,inner sep=0.5mm,fit=(worker3) (cv3) (cv3) (cv3)] {};
 
 
+                \node[align=center, dotted, draw, rectangle,
+                above right =0.7cm and -1cm of cv3, visible on =<8->] (memmaparray) {%
+                    \tiny memmaped data \\
+                    \resizebox{0.13\textwidth}{!}{%
+                    \begin{tabular}{c c}
+                        a & b \\
+                        \hline
+                        \hline
+                        1 & 2 \\
+                        3 & 4 \\
+                        5 & 6 \\
+                        7 & 8 \\
+                    \end{tabular}}};
+                % \node[align=center, above=0.1cm of memmaparray]
+                % (legendmemap) {\tiny memmaped\\ \tiny data};
+                % \draw node[rectangle,  draw=gray, font=\tiny] (main){memmaped};
+                \path[->, visible on = <8>] (main-thread.north) edge[bend left]
+                (memmaparray.north);
+
                 \node[visible on = <6->, align=left] (legend) at (4, -3){};
                 \node[visible on= <6->, draw,inner sep=1mm,fit=(legend) (legend) (legend) (legend)] {};
                 \node[visible on = <6->, align=left] (title) at (7, -3){\tiny : single python interpreter};
@@ -351,67 +410,46 @@
         \end{columns}
     \end{frame}
 
-    % \begin{frame}[t]{}
-    %     \center
-    %     \vspace{3em}
-    %     \tableofcontents[
-    %         % currentsubsection,
-    %         % hideothersubsections,
-    %         subsectionstyle=show/hide/hide,
-    %         sectionstyle=show/hide
-    %         ]
-    % \end{frame}
-
-    \begin{frame}[t]{The challenges of multiprocessing (and beyond)}
-        \vspace{1cm}
-        Improvements in python multiprocessing mostly concern:
-        \hspace{10em}
-        \begin{tabular}{m{0.5cm} m{10cm}}
-                 & \\
-                 & \\
-                \includegraphics[width=\linewidth] {media/rocket-emoji.png} & speed (of data communication) \\
-                \includegraphics[width=\linewidth]{media/recyclable_emoji.png} & memory footprint (of duplicated data) \\
-                \includegraphics[width=\linewidth]{media/green-tick-emoji.png} & ease of use, safety (deadlocks) \\
-            \end{tabular}
-
-    \end{frame}
-
-    \begin{frame}[t]{}
-        \vspace{5em}
-        \center disclaimer: this talk is mostly cpython specific.
-    \end{frame}
-
     \begin{frame}[t]{In practice}
+        \vspace*{-1.3cm}
         \begin{figure}[htpb]
             \centering
             \only<1>{\includegraphics[width=\linewidth]{media/plots/benchmark_plots/seq_vs_parallel_bounds_only.png}}%
             \only<2>{\includegraphics[width=\linewidth]{media/plots/benchmark_plots/seq_vs_parallel_bounds_and_scatter.png}}%
             \only<3>{\includegraphics[width=\linewidth]{media/plots/benchmark_plots/seq_vs_parallel_bounds_and_scatter_and_patches.png}}
-            % \caption{Seq vs parallel bounds only}
+            \caption{Model fitting time - parallel vs. sequential}
             \label{seq_vs_parallel_bounds_only}
         \end{figure}
     \end{frame}
 
-    \begin{frame}[fragile]{decreasing mutliprocessing overheads}
-        \begin{tabular}{m{0.5cm} m{10cm}}
-            \includegraphics[width=\linewidth] {media/lock-emoji.png} &
-            \textit{thread-based parallelism} is useful only if the compute-heavy part
-            of your program releases \mycode{Python}'s GIL. This is not
-            something parallel computing libraries have a say on. \\
-        \end{tabular}
-        \vspace{1em}
+    % \begin{frame}[fragile]{takeway - processes vs. threads}
+    %     \begin{tabular}{m{0.5cm} m{10cm}}
+    %         \includegraphics[width=\linewidth] {media/lock-emoji.png} &
+    %         \textit{thread-based parallelism} is useful only if the compute-heavy part
+    %         of your program releases \mycode{Python}'s GIL. This is not
+    %         something parallel computing libraries have a say on. \\
+    %     \end{tabular}
+    %     \vspace{1em}
 
-        \uncover<2->{
-        \begin{tabular}{m{0.5cm} m{10cm}}
-            \includegraphics[width=\linewidth] {media/unlocked-lock-emoji.png} &
-            \textit{process-based parallesim} guarantees parallel execution of
-            \mycode{Python} code, but this comes at the cost of \textcolor{red}{transfering
-            data} to the newly-created processes
-        \end{tabular}
-        }
-    \end{frame}
+    %     \uncover<2->{
+    %     \begin{tabular}{m{0.5cm} m{10cm}}
+    %         \includegraphics[width=\linewidth] {media/unlocked-lock-emoji.png} &
+    %         \textit{process-based parallesim} guarantees parallel execution of
+    %         \mycode{Python} code, but this comes at the cost of \textcolor{red}{transfering
+    %         data} to the newly-created processes
+    %     \end{tabular}
+    %     }
+    % \end{frame}
+
 
 \section{Built-in and Third Party multiprocessing ressources}
+    \begin{frame}[t]{}
+        \vspace{10em}
+        \centering{\large \textbf{Built-in and Third Party multiprocessing
+        ressources}}
+    \end{frame}
+
+
 
     \subsection{In the Standard Library}
 
@@ -424,7 +462,7 @@
                 \begin{itemize}
                     \visible<2->{\item creation}
                     \visible<3->{\item communication}
-                    \visible<4->{\item \hl{shared memory}}
+                    \visible<4->{\item \hl{synchronization}}
                 \end{itemize}
                 \vspace{2cm}
             \end{column}
@@ -518,12 +556,12 @@
 
     \begin{frame}[fragile]{\mycode[\small]{multiprocessing} portability}
         \small
-        \mycode[\scriptsize]{multiprocessing} has some issues with:
+        % \mycode[\scriptsize]{multiprocessing} has some issues with:
         \uncover<2->{
         \begin{tabular}{m{0.5cm} m{10cm}}
             & \\
             \includegraphics[width=\linewidth] {media/cross-emoji.png} &
-            interactive sessions (\faWindows \, + \mycode[\tiny]{IPython, Jupyter}) \\
+            \mycode[\footnotesize]{Windows} (start method; spawn) causes issues with interactive sessions (\mycode[\tiny]{IPython, Jupyter}) \\
         \end{tabular}
         \vspace{-0.5cm}
         \inputminted[fontsize=\tiny,bgcolor=beige]{pycon}{scripts/interactive_session_windows.txt}
@@ -535,7 +573,8 @@
         \uncover<3->{%
         \begin{tabular}{m{0.5cm} m{10cm}}
             \includegraphics[width=\linewidth] {media/cross-emoji.png} &
-            external libraries (\faApple \, + \mycode{numpy}, \mycode{OpenMP}) \\
+            posix (start method; fork) causes crash with external libraries (GNU \mycode{openmp})
+            % lack of robustness external libraries (\faApple \, + \mycode{numpy}, \mycode{OpenMP}) \\
         \end{tabular}}
         \uncover<4->{%
         \begin{tabular}{m{0.5cm} m{10cm}}
@@ -548,40 +587,46 @@
     \begin{frame}[t]{\mycode[\small]{loky}}
         \vspace{1em}
         \mycode[\small]{loky} is a third party package, that provides a more
-        robust process pool implementation. It works out of the box on:
+        robust process pool implementation. 
         \begin{tabular}{m{0.5cm} m{10cm}}
             & \\
             \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
-            All \mycode[\scriptsize]{Python} versions \\ \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
-            All Operating Systems \\
-            \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
-            Interactive shells\\
+            Support for \mycode[\small]{Python3.4}+ (And 2.7... until next year)
+            \\ \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
+            Consistent behavior on all \faLinux \, \faApple, \,and \, \faWindows \\
+            \includegraphics[width=\linewidth] {media/chart-emoji.png} &
+            Works in interactive shells\\
             & \\
         \end{tabular}
         \vspace{1em}
-        It is also the official backend of \mycode{scikit-learn}
-
+        It is also the default backend of \mycode{scikit-learn}
     \end{frame}
 
-    \begin{frame}[fragile]{wait...}
-        \mycode{loky} is built on top of another standard library module:
-        \mycode{concurrent.futures}. The features of loky are regularly ported
-        to \mycode{concurrent.futures} upstream.
+    % \begin{frame}[fragile]{wait...}
+    %     \mycode{loky} is built on top of another standard library module:
+    %     \mycode{concurrent.futures}. The features of loky are regularly ported
+    %     to \mycode{concurrent.futures} upstream (3.7, 3.8)
 
-        \begin{flushright}
-            Why not building on top of \mycode{mp.pool}?
-        \end{flushright}
-        mostly because \mycode{mp.Pool} is suspected to have unfixeable deadlocks.
+    %     \uncover<2->{
+    %     \begin{flushright}
+    %         Why not building on top of \mycode{mp.Pool}?
+    %     \end{flushright}
+    %     }
+    %     \uncover<3->{
+    %     % mostly because \mycode{mp.Pool} is suspected to have unfixeable deadlocks.
+    %     The design of concurrent futures makes it easy to ensure robustness
+    %     when workers crashes abruptly.
+    %     }
 
-    \end{frame}
+    % \end{frame}
 
-    \begin{frame}[fragile]{User API}
+    \begin{frame}[fragile]{\mycode[\small]{loky} - API}
         \scriptsize \mycode{concurrent futures} and \mycode{loky} \textbf{only expose (the same) worker pool} objects
         \bigskip
 
 
         \uncover<2->{
-            \alt<3>{
+            \alt<3->{
         using \mycode{loky}
         \smallskip
         \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/loky.py}
@@ -590,21 +635,33 @@
         \smallskip
         \inputminted[fontsize=\tiny,bgcolor=beige]{python}{scripts/concurrent_futures.py}
         }}
-        \uncover<4>{
-        \mycode{executor.map} is \textbf{async}. It returns a generator which
-        blocks upon consumption until the next task completes.
-        }
+        % \uncover<4>{
+        % \mycode{executor.map} is \textbf{async}. It returns a generator which blocks upon consumption until the next task completes.
+        % }
     \end{frame}
 
-    \begin{frame}[fragile]{\mycode{joblib}}
+    \begin{frame}[fragile]{\mycode[\small]{joblib}}
         \small
         \mycode{joblib} is a parallel computing library built on top of of
         \mycode{loky}. It provides many useful features and optimizations for
         data scientists, including:
+
+        \only<1>{
+        \begin{tabular}{c}
+            \\
+            \\
+            \\
+            \\
+            \\
+            \\
+            \\
+        \end{tabular}
+        }
         \vspace{1em}
         \uncover<2->{
         \begin{tabular}{m{0.5cm} m{10cm}}
-            \includegraphics[width=\linewidth] {media/rocket-emoji.png} & on-demand recomputing \\
+            \includegraphics[width=\linewidth] {media/rocket-emoji.png} &
+            disk-based memoization of expensive computations\\
         \end{tabular}
         \only<2>{
         \vspace{-1em}
@@ -632,35 +689,58 @@
     \end{frame}
 
 \section{Optimizing data communication}
+    \begin{frame}[t]{The challenges of multiprocessing (and beyond)}
+        \vspace{1cm}
+        Improvements in python multiprocessing mostly concern:
+        \hspace{10em}
+        \begin{tabular}{m{0.5cm} m{10cm}}
+                 & \\
+                 & \\
+                \includegraphics[width=\linewidth] {media/rocket-emoji.png} & speed (of data communication) \\
+                \includegraphics[width=\linewidth]{media/recyclable_emoji.png} & memory footprint (of duplicated data) \\
+                \includegraphics[width=\linewidth]{media/green-tick-emoji.png} & ease of use, robustnews(deadlocks) \\
+            \end{tabular}
+
+    \end{frame}
+    \begin{frame}[t]{}
+        \vspace{10em}
+        \centering{\large \textbf{Optimizing data transfer}}
+    \end{frame}
+
+    \begin{frame}[t]{disclaimer}
+        \vspace{5em}
+        \center The optimizations mentionned now are \mycode[\small]{CPython} specific.
+    \end{frame}
 
     \subsection{Serialization in \mycode{python}}
 
-    % \begin{frame}[t]{Serializtion}
-    %     \footnotesize \textbf{Serialization} defines the process of transforming an in-memory object
-    %     into a sequence of bytes.
+    \begin{frame}[t]{Serialization}
+        \footnotesize \textbf{Serialization} defines the process of transforming an in-memory object
+        into a sequence of bytes.
 
-    %     \begin{tikzpicture}
-    %         \draw (-2.5, 0) node[rectangle, draw, rounded corners,
-    %             font=\footnotesize, minimum width = 2cm] (process-1){\mycode[\footnotesize]{[1, 2, 3]}};
-    %         \draw (2.5, 0) node[rectangle, draw, rounded corners,
-    %             font=\footnotesize, minimum width = 2cm]
-    %             (process-2){\uncover<4>{\mycode[\footnotesize]{[1, 2, 3]}}};
+        \begin{tikzpicture}
+            \draw (-2.5, 0) node[rectangle, draw, rounded corners,
+                font=\footnotesize, minimum width = 2cm]
+                (process-1){\mycode[\footnotesize]{estimator}};
+            \draw (2.5, 0) node[rectangle, draw, rounded corners,
+                font=\footnotesize, minimum width = 2cm]
+                (process-2){\uncover<4>{\mycode[\footnotesize]{estimator}}};
 
-    %         \draw (0, 2) node[visible on = <2->, rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
-    %             (buffer){\uncover<2->{\mycode[\footnotesize]{0111101...01}}};
-    %         \draw (-5, 3.5) node[] (void){};
-    %         \node[below = 0.1cm of process-1] (label-1) {process-1};
-    %         \node[below = 0.1cm of process-2] (label-2) {process-2};
-    %         \node[visible on = <4->, above right  = 0.1cm and -0.5cm of process-2] (ser) {deserialization};
-    %         \node[visible on = <2->, above left  = 0.1cm and -0.5cm of process-1] (deser) {serialization};
-    %         \draw[->, visible on = <2->] (process-1.north) |- (buffer.west);
-    %         \draw[->, visible on = <4->] (buffer.east) -| (process-2.north);
-    %     \end{tikzpicture}
-    %     \uncover<3->{
-    %         The bytes string contains the instructions sequence that has to be
-    %         executed to reconstruct the object in a fresh python environment
-    %     }
-    % \end{frame}
+            \draw (0, 2) node[visible on = <2->, rectangle, draw, rounded corners, font=\footnotesize, minimum width = 2cm]
+                (buffer){\uncover<2->{\mycode[\footnotesize]{0111101...01}}};
+            \draw (-5, 3.5) node[] (void){};
+            \node[below = 0.1cm of process-1] (label-1) {process-1};
+            \node[below = 0.1cm of process-2] (label-2) {process-2};
+            \node[visible on = <4->, above right  = 0.1cm and -0.5cm of process-2] (ser) {deserialization};
+            \node[visible on = <2->, above left  = 0.1cm and -0.5cm of process-1] (deser) {serialization};
+            \draw[->, visible on = <2->] (process-1.north) |- (buffer.west);
+            \draw[->, visible on = <4->] (buffer.east) -| (process-2.north);
+        \end{tikzpicture}
+        \uncover<3->{
+            The bytes string contains the instructions sequence that has to be
+            executed to reconstruct the graph of objects in a fresh python environment
+        }
+    \end{frame}
     \begin{frame}[t]{the \mycode[\small]{pickle} protocol}
         \vspace{2em}
         \footnotesize
@@ -669,6 +749,7 @@
         standard library.
 
         \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/pickle_example.py}
+        \inputminted[bgcolor=beige, fontsize=\tiny]{python}{scripts/pickle_deserialization.py}
     \end{frame}
 
 \subsection{Better support for pickle extensions}
@@ -677,7 +758,7 @@
         \begin{tabular}{m{0.5cm} m{10cm}}
             \includegraphics[width=\linewidth] {media/police-car-light-emoji.png} &
         \footnotesize
-        for security reasons, the pickle implementation blocks the
+        by design, the pickle implementation blocks the
         serialization of some \mycode{Python} constructs
         \end{tabular}
         \uncover<2->{
@@ -689,9 +770,22 @@
     }
         \uncover<4->{
         \footnotesize
-        In practice \mycode{scikit-learn}, as well as many distributed computing
-        libraries use \mycode{pickle} extension libraries, such as \mycode{cloudpickle}
+        In practice, data scientists need remote code execution of
+        interactively defined functions (\mycode[\footnotesize]{jupyter} +
+        \mycode[\footnotesize]{dask}, \mycode[\footnotesize]{Zeppelin} +
+        \mycode[\footnotesize]{(py)spark}...)
+        \vspace{0.3em}
+        \\Such frameworks require pickle extensions such as cloudpickle
         \inputminted[bgcolor=beige, fontsize=\tiny]{pycon}{scripts/cloudpickle_example_2.py}
+        \begin{tabular}{m{3cm} m{1cm} m{1cm} m{1cm} m{1cm} m{1cm}}
+            &
+            \includegraphics[width=\linewidth] {media/ray-logo.png} &
+            \includegraphics[width=\linewidth] {media/dask-logo.png} &
+            \includegraphics[width=\linewidth] {media/scikit-learn-logo.png} &
+            \includegraphics[width=\linewidth] {media/spark-logo-hd.png} &
+            \includegraphics[width=\linewidth] {media/prefect-logo.jpeg} &
+
+        \end{tabular}
     }
     \end{frame}
 
@@ -717,9 +811,10 @@
         }
         \uncover<3->{
         \vspace{-1em}
+        \hspace{-12em}
         \begin{tabular}{m{6.5cm} m{1cm} m{10cm}}
             & \includegraphics[width=\linewidth] {media/rocket-emoji.png} &
-        \LARGE \textcolor{olive}{30x faster!}
+        \LARGE \textcolor{olive}{30x faster than on python3.7!}
         \end{tabular}
         }
     \end{frame}
@@ -733,15 +828,20 @@
               \setlength\itemsep{1em}
               \item[] \faDatabase \quad \mycode{pickle} was originally designed for on-disk
                   persistency of \mycode{Python} objects.
-               \item[]<2-> \faExchange \quad Now, it is used wildely to communicate objects between,
-                   process, which is done in-memory. \textbf{RAM usage becomes
+               \item[]<2-> \faExchange \quad Now, it is used wildely to communicate objects between
+                   workers, which is done in-memory. \textbf{RAM usage becomes
                        a critical concern.}
         \end{itemize}
         \vspace{1em}
         \uncover<3->{
-        \mycode[\small]{pickle} protocol 5 \footnote{work by Antoine Pitrou} addition:
-        \mycode[\small]{PickleBuffer}: -50\% of memory footprint during
-        pickling of large \mycode[\small]{numpy} arrays
+            \setbeamercolor{block body}{bg=beige}
+            \begin{beamerboxesrounded}{}
+            \mycode[\small]{pickle} \textbf{protocol 5 \footnote{work by
+            Antoine Pitrou} addition}: \mycode[\small]{PickleBuffer} \\
+        \footnotesize
+        ensures no copy operations when dumping or loading objects with large \mycode[\footnotesize]{numpy} arrays and \mycode[\footnotesize]{Arrow} tables.
+        (pandas \mycode[\footnotesize]{DataFrame}, \mycode[\footnotesize]{scikit-learn} estimators...)
+    \end{beamerboxesrounded}
         }
     \end{frame}
 
@@ -752,16 +852,16 @@
         \begin{tikzpicture}
   \node[draw, rectangle,             align=center, minimum height=0.5cm] (1)
       {\footnotesize shape};
-  \node[draw, rectangle, right=0.1cm of 1, align=center, minimum height=0.5cm] (2)
-      {\footnotesize shape};
-  \node[draw, rectangle, right=0.1cm of 2, align=center, minimum height=0.5cm] (3)
+  \node[draw, rectangle, above=0.1cm of 1, align=center, minimum height=0.5cm] (2)
+      {\footnotesize strides};
+  \node[draw, rectangle, above=0.1cm of 2, align=center, minimum height=0.5cm] (3)
       {\footnotesize flags};
   \node[alt=<3>{draw=red, thick}{draw=black}, rectangle, right=0.2cm of 3, align=center, minimum height=3cm] (4)
-      {data};
+      {big data buffer};
   \node[draw, thick, inner sep=0.2cm,fit=(4) (4) (1) (4)] (nparray) {};
-  \node[align=left, fill=gray!10] (legend) at (nparray.south) {numpy array};
+  \node[align=left, fill=gray!10, right=0.1cm of nparray] (legend)  {numpy array};
   \node[visible on =<2->,draw=olive, thick, inner sep=0.1cm, fit=(1) (1) (1) (3), rectangle]  (metadata){};
-  \node (picklestream) at (6, 2) {};
+  \node (picklestream) at (6, 4) {};
   \node (thirdpartystream) at (6, -2) {};
   \draw[visible on =<2->,color=olive, ->, ultra thick] (metadata.north) |- (picklestream);
   \draw[visible on=<3->,color=red, ->, ultra thick] (4.south) |- (thirdpartystream);
@@ -787,7 +887,7 @@
         \uncover<2->{
         \begin{tabular}{m{0.5cm} m{10cm}}
             \includegraphics[width=\linewidth] {media/thinking-face-emoji.png} &
-        which backend (processes vs. threads) to use is a
+        which backend (processes vs. threads) to use can be a
             problem-specific question: what's the size of your data, does your
             compute-hungry code releases the GIL... \\
                                                                         & \\
@@ -795,10 +895,12 @@
         }
         \uncover<3->{
         \begin{tabular}{m{0.5cm} m{10cm}}
-            \includegraphics[width=\linewidth] {media/green-tick-emoji.png} &
-        thankfully, activating parallelism, and switching backends can be
-            done using one line of code in \mycode{joblib}
+            \includegraphics[width=\linewidth] {media/arrow_up-emoji.png} &
+            \textbf{working with upstream is worth the hassle}
         \end{tabular}
+        \begin{flushright}
+            Questions?
+        \end{flushright}
         }
 \end{frame}
 \end{document}

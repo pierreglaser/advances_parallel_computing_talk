@@ -7,9 +7,9 @@ params = {
         "axes.labelsize": 20,
         "lines.linewidth": 3,
         "lines.markersize": 10,
-        "xtick.labelsize": 16,
-        "ytick.labelsize": 16,
-        "font.size": 16,
+        "xtick.labelsize": 20,
+        "ytick.labelsize": 20,
+        "font.size": 24,
         # "font.weight": "bold",
 }
 mpl.rcParams.update(params)
@@ -37,6 +37,6 @@ for loc in ['right', 'left', 'top', 'bottom']:
 
 i = 0
 for idx, row in top_5_python_usage.iteritems():
-    ax.text(row + 4300, i-0.1, '{0:.1%}'.format(row/len(python_usage)))
+    ax.text(row + 6100, i-0.1, '{0:.1%}'.format(row/len(python_usage)))
     i += 1
 f.savefig('../media/psf_usage_survey.png', dpi=f.dpi, transparent=True)
